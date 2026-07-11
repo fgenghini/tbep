@@ -187,7 +187,7 @@ TASK-16 → TASK-17 (Railway deployment config)
 
 **Depends on:** TASK-05, TASK-06.
 
-**Status:** [ ] Done
+**Status:** [x] Done
 
 **Goal:** Implement the factory that resolves an `LLMClient` implementation by provider name, per `ARCH_TBEP.md` Section 5.4.
 
