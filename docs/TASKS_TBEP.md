@@ -83,7 +83,7 @@ TASK-16 → TASK-17 (Railway deployment config)
 
 **Depends on:** TASK-01.
 
-**Status:** [ ] Done
+**Status:** [x] Done
 
 **Goal:** Centralize environment variable loading so other components (LLM client, main.py) can read config consistently.
 
