@@ -55,7 +55,7 @@ TASK-16 → TASK-17 (Railway deployment config)
 
 **Depends on:** none (first task, starting from empty repo).
 
-**Status:** [ ] Done
+**Status:** [x] Done
 
 **Goal:** Set up the project skeleton and developer tooling so every subsequent task can build/lint/type-check/test from day one.
 

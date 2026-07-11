@@ -1,0 +1,32 @@
+[project]
+name = "tbep"
+version = "0.1.0"
+description = "Telegram Bot for English Practice"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "openai>=1.0.0",
+    "python-telegram-bot>=21.0",
+]
+
+[dependency-groups]
+dev = [
+    "mypy>=1.0.0",
+    "pytest>=8.0.0",
+    "ruff>=0.5.0",
+]
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+mypy_path = "src"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
