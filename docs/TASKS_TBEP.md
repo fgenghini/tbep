@@ -165,7 +165,7 @@ TASK-16 → TASK-17 (Railway deployment config)
 
 **Depends on:** TASK-05, TASK-02 (for API key config pattern).
 
-**Status:** [ ] Done
+**Status:** [x] Done
 
 **Goal:** Implement the concrete ChatGPT-backed LLM client.
 
