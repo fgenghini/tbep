@@ -251,7 +251,7 @@ TASK-16 → TASK-17 (Railway deployment config)
 
 **Depends on:** TASK-03.
 
-**Status:** [ ] Done
+**Status:** [x] Done
 
 **Goal:** Define the command-handling interface, per `ARCH_TBEP.md` Section 5.1.
 
