@@ -146,7 +146,7 @@ TASK-16 → TASK-17 (Railway deployment config)
 
 **Depends on:** TASK-01.
 
-**Status:** [ ] Done
+**Status:** [x] Done
 
 **Goal:** Define the LLM integration interface, per `ARCH_TBEP.md` Section 5.3.
 
