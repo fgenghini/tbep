@@ -227,7 +227,7 @@ TASK-16 → TASK-17 (Railway deployment config)
 
 **Depends on:** TASK-08.
 
-**Status:** [ ] Done
+**Status:** [x] Done
 
 **Goal:** Implement the v1 message processor that drives persona replies and corrections.
 
