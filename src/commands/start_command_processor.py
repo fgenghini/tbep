@@ -1,5 +1,4 @@
 import logging
-from typing import Any
 
 from src.commands.command_processor import CommandProcessor
 from src.messages.message_processor import LLMClientFactoryProtocol
@@ -17,10 +16,9 @@ class StartCommandProcessor(CommandProcessor):
         self,
         user_state_store: UserStateStore,
         llm_client_factory: LLMClientFactoryProtocol,
-        **llm_config: Any,
     ) -> None:
         super().__init__(user_state_store)
-        self.llm_client = llm_client_factory.create(**llm_config)
+        self.llm_client = llm_client_factory.create()
 
     def process(self, user_id: int, args: str) -> str:
         self._apply_defaults(user_id)

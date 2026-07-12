@@ -23,10 +23,8 @@ def test_constructor_calls_factory() -> None:
     llm_mock = MagicMock()
     factory_mock.create.return_value = llm_mock
 
-    processor = DummyMessageProcessor(
-        store_mock, factory_mock, provider="test", key="value"
-    )
+    processor = DummyMessageProcessor(store_mock, factory_mock)
 
-    factory_mock.create.assert_called_once_with(provider="test", key="value")
+    factory_mock.create.assert_called_once_with()
     assert processor.user_state_store is store_mock
     assert processor.llm_client is llm_mock

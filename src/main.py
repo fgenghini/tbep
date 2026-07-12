@@ -59,18 +59,15 @@ def build_application(
 
 def build_bot_components(config: AppConfig) -> BotComponents:
     user_state_store = UserStateStoreMemory()
-    llm_client_factory = LLMClientFactory()
-    llm_config = {"api_key": config.openai_api_key}
+    llm_client_factory = LLMClientFactory(api_key=config.openai_api_key)
 
     return BotComponents(
-        start=StartCommandProcessor(user_state_store, llm_client_factory, **llm_config),
-        profile=ProfileCommandProcessor(
-            user_state_store, llm_client_factory, **llm_config
-        ),
-        topic=TopicCommandProcessor(user_state_store, llm_client_factory, **llm_config),
+        start=StartCommandProcessor(user_state_store, llm_client_factory),
+        profile=ProfileCommandProcessor(user_state_store, llm_client_factory),
+        topic=TopicCommandProcessor(user_state_store, llm_client_factory),
         help=HelpCommandProcessor(user_state_store),
-        reset=ResetCommandProcessor(user_state_store, llm_client_factory, **llm_config),
-        text=TextMessageProcessor(user_state_store, llm_client_factory, **llm_config),
+        reset=ResetCommandProcessor(user_state_store, llm_client_factory),
+        text=TextMessageProcessor(user_state_store, llm_client_factory),
     )
 
 
