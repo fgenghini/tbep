@@ -22,6 +22,13 @@ class AppConfig:
     openai_api_key: str
     webhook_secret_path: str
     port: int = DEFAULT_PORT
+    webhook_base_url: str | None = None
+
+    @property
+    def webhook_url(self) -> str | None:
+        if self.webhook_base_url is None:
+            return None
+        return f"{self.webhook_base_url}/{self.webhook_secret_path}"
 
 
 def load_config(environ: Mapping[str, str] | None = None) -> AppConfig:
@@ -31,6 +38,7 @@ def load_config(environ: Mapping[str, str] | None = None) -> AppConfig:
         openai_api_key=_get_required(env, "OPENAI_API_KEY"),
         webhook_secret_path=_get_required(env, "WEBHOOK_SECRET_PATH"),
         port=_get_port(env),
+        webhook_base_url=_get_optional(env, "WEBHOOK_BASE_URL"),
     )
 
 
@@ -38,6 +46,13 @@ def _get_required(environ: Mapping[str, str], name: str) -> str:
     value = environ.get(name)
     if value is None or value.strip() == "":
         raise ConfigError(f"Missing required environment variable: {name}")
+    return value
+
+
+def _get_optional(environ: Mapping[str, str], name: str) -> str | None:
+    value = environ.get(name)
+    if value is None or value.strip() == "":
+        return None
     return value
 
 

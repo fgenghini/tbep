@@ -8,6 +8,7 @@ def test_load_config_reads_required_env_vars(monkeypatch: pytest.MonkeyPatch) ->
     monkeypatch.setenv("OPENAI_API_KEY", "openai-key")
     monkeypatch.setenv("WEBHOOK_SECRET_PATH", "secret-path")
     monkeypatch.setenv("PORT", "9000")
+    monkeypatch.setenv("WEBHOOK_BASE_URL", "https://example.com")
 
     config = load_config()
 
@@ -16,6 +17,7 @@ def test_load_config_reads_required_env_vars(monkeypatch: pytest.MonkeyPatch) ->
         openai_api_key="openai-key",
         webhook_secret_path="secret-path",
         port=9000,
+        webhook_base_url="https://example.com",
     )
 
 
@@ -28,6 +30,27 @@ def test_load_config_defaults_port(monkeypatch: pytest.MonkeyPatch) -> None:
     config = load_config()
 
     assert config.port == DEFAULT_PORT
+
+
+def test_config_builds_webhook_url_when_base_url_is_set() -> None:
+    config = AppConfig(
+        telegram_bot_token="telegram-token",
+        openai_api_key="openai-key",
+        webhook_secret_path="secret-path",
+        webhook_base_url="https://example.com",
+    )
+
+    assert config.webhook_url == "https://example.com/secret-path"
+
+
+def test_config_webhook_url_is_none_without_base_url() -> None:
+    config = AppConfig(
+        telegram_bot_token="telegram-token",
+        openai_api_key="openai-key",
+        webhook_secret_path="secret-path",
+    )
+
+    assert config.webhook_url is None
 
 
 def test_load_config_raises_clear_error_for_missing_required_env_var(

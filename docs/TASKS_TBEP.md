@@ -372,7 +372,7 @@ TASK-16 → TASK-17 (Railway deployment config)
 
 **Depends on:** TASK-02, TASK-11, TASK-12, TASK-13, TASK-14, TASK-15.
 
-**Status:** [ ] Done
+**Status:** [x] Done
 
 **Goal:** Wire all components together into a running webhook-based bot, per `ARCH_TBEP.md` Sections 7–8.
 
