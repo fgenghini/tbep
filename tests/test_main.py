@@ -5,90 +5,55 @@ from unittest.mock import AsyncMock, MagicMock, call
 import pytest
 from telegram.ext import CommandHandler, MessageHandler
 
+from src.commands.command_processor import CommandProcessor
 from src.config import AppConfig
 from src.main import (
     build_application,
     handle_error,
-    handle_help_command,
-    handle_profile_command,
-    handle_reset_command,
-    handle_start_command,
-    handle_text_message,
-    handle_topic_command,
+    make_command_callback,
+    make_message_callback,
     run_webhook,
 )
+from src.messages.message_processor import MessageProcessor
 
 
-def test_handle_start_command_replies_with_processor_output() -> None:
-    update, message = make_update()
-    context = SimpleNamespace(args=["ignored"])
-    processor = MagicMock()
-    processor.process.return_value = "opening message"
-
-    asyncio.run(handle_start_command(update, context, processor))
-
-    processor.process.assert_called_once_with(123, "")
-    message.reply_text.assert_awaited_once_with("opening message")
-
-
-def test_handle_profile_command_joins_context_args() -> None:
+def test_make_command_callback_uses_args_provider() -> None:
     update, message = make_update()
     context = SimpleNamespace(args=["a", "pirate"])
-    processor = MagicMock()
+    processor = MagicMock(spec=CommandProcessor)
     processor.process.return_value = "profile set"
+    callback = make_command_callback(processor, lambda ctx: " ".join(ctx.args))
 
-    asyncio.run(handle_profile_command(update, context, processor))
+    asyncio.run(callback(update, context))
 
     processor.process.assert_called_once_with(123, "a pirate")
     message.reply_text.assert_awaited_once_with("profile set")
 
 
-def test_handle_topic_command_joins_context_args() -> None:
-    update, message = make_update()
-    context = SimpleNamespace(args=["ordering", "coffee"])
-    processor = MagicMock()
-    processor.process.return_value = "topic set"
-
-    asyncio.run(handle_topic_command(update, context, processor))
-
-    processor.process.assert_called_once_with(123, "ordering coffee")
-    message.reply_text.assert_awaited_once_with("topic set")
-
-
-def test_handle_help_command_replies_with_help_text() -> None:
+def test_make_command_callback_supports_empty_args() -> None:
     update, message = make_update()
     context = SimpleNamespace(args=[])
-    processor = MagicMock()
-    processor.process.return_value = "help text"
+    processor = MagicMock(spec=CommandProcessor)
+    processor.process.return_value = "opening message"
+    callback = make_command_callback(processor, lambda _ctx: "")
 
-    asyncio.run(handle_help_command(update, context, processor))
-
-    processor.process.assert_called_once_with(123, "")
-    message.reply_text.assert_awaited_once_with("help text")
-
-
-def test_handle_reset_command_replies_with_opening_message() -> None:
-    update, message = make_update()
-    context = SimpleNamespace(args=[])
-    processor = MagicMock()
-    processor.process.return_value = "reset opening"
-
-    asyncio.run(handle_reset_command(update, context, processor))
+    asyncio.run(callback(update, context))
 
     processor.process.assert_called_once_with(123, "")
-    message.reply_text.assert_awaited_once_with("reset opening")
+    message.reply_text.assert_awaited_once_with("opening message")
 
 
-def test_handle_text_message_sends_persona_reply_and_correction() -> None:
+def test_make_message_callback_sends_persona_reply_and_correction() -> None:
     update, message = make_update(text="I has coffee")
     context = SimpleNamespace()
-    processor = MagicMock()
+    processor = MagicMock(spec=MessageProcessor)
     processor.process.return_value = {
         "persona_reply": "Nice choice.",
         "correction": "I have coffee.",
     }
+    callback = make_message_callback(processor)
 
-    asyncio.run(handle_text_message(update, context, processor))
+    asyncio.run(callback(update, context))
 
     processor.process.assert_called_once_with(123, "I has coffee")
     assert message.reply_text.await_args_list == [
@@ -97,16 +62,17 @@ def test_handle_text_message_sends_persona_reply_and_correction() -> None:
     ]
 
 
-def test_handle_text_message_omits_correction_when_none() -> None:
+def test_make_message_callback_omits_correction_when_none() -> None:
     update, message = make_update(text="I am fine")
     context = SimpleNamespace()
-    processor = MagicMock()
+    processor = MagicMock(spec=MessageProcessor)
     processor.process.return_value = {
         "persona_reply": "That's great.",
         "correction": None,
     }
+    callback = make_message_callback(processor)
 
-    asyncio.run(handle_text_message(update, context, processor))
+    asyncio.run(callback(update, context))
 
     processor.process.assert_called_once_with(123, "I am fine")
     message.reply_text.assert_awaited_once_with("That's great.")
@@ -144,10 +110,10 @@ def test_build_application_registers_expected_handlers() -> None:
     assert len(application.error_handlers) == 1
 
 
-def test_run_webhook_uses_public_domain_when_available(
+def test_run_webhook_uses_public_base_url_when_available(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setenv("RAILWAY_PUBLIC_DOMAIN", "example.railway.app")
+    monkeypatch.setenv("WEBHOOK_BASE_URL", "example.com")
     config = AppConfig(
         telegram_bot_token="telegram-token",
         openai_api_key="openai-key",
@@ -162,7 +128,25 @@ def test_run_webhook_uses_public_domain_when_available(
         listen="0.0.0.0",
         port=9000,
         url_path="secret-path",
-        webhook_url="https://example.railway.app/secret-path",
+        webhook_url="https://example.com/secret-path",
+    )
+
+
+def test_run_webhook_omits_webhook_url_when_not_configured() -> None:
+    config = AppConfig(
+        telegram_bot_token="telegram-token",
+        openai_api_key="openai-key",
+        webhook_secret_path="secret-path",
+        port=9000,
+    )
+    application = MagicMock()
+
+    run_webhook(application, config)
+
+    application.run_webhook.assert_called_once_with(
+        listen="0.0.0.0",
+        port=9000,
+        url_path="secret-path",
     )
 
 
