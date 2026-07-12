@@ -308,7 +308,7 @@ TASK-16 → TASK-17 (Railway deployment config)
 
 **Depends on:** TASK-10, TASK-09.
 
-**Status:** [ ] Done
+**Status:** [x] Done
 
 **Goal:** Implement `/profile` — sets persona, resets conversation, starts a new conversation.
 
