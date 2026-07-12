@@ -1,8 +1,11 @@
+import logging
 from typing import Any
 
 from src.commands.command_processor import CommandProcessor
 from src.messages.message_processor import LLMClientFactoryProtocol
 from src.state.user_state_store import UserStateStore
+
+logger = logging.getLogger(__name__)
 
 
 class ProfileCommandProcessor(CommandProcessor):
@@ -40,4 +43,8 @@ class ProfileCommandProcessor(CommandProcessor):
             self.user_state_store.append_turn(user_id, "assistant", opening_msg)
             return opening_msg
         except Exception:
+            logger.exception(
+                "Failed to generate profile command opening message for user_id=%s",
+                user_id,
+            )
             return "An error occurred. Try again in a moment."

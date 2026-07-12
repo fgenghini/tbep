@@ -1,5 +1,7 @@
 from unittest.mock import MagicMock
 
+import pytest
+
 from src.commands.reset_command_processor import ResetCommandProcessor
 from src.state.user_state_store_memory import UserStateStoreMemory
 
@@ -31,7 +33,7 @@ def test_process_resets_history_and_returns_message() -> None:
     assert state.history[0] == {"role": "assistant", "content": "Ahoy matey!"}
 
 
-def test_process_error() -> None:
+def test_process_error(caplog: pytest.LogCaptureFixture) -> None:
     store = UserStateStoreMemory()
     factory_mock = MagicMock()
     llm_mock = MagicMock()
@@ -40,5 +42,10 @@ def test_process_error() -> None:
 
     processor = ResetCommandProcessor(store, factory_mock)
 
-    result = processor.process(1, "")
+    with caplog.at_level("ERROR"):
+        result = processor.process(1, "")
+
     assert result == "An error occurred. Try again in a moment."
+    assert (
+        "Failed to generate reset command opening message for user_id=1" in caplog.text
+    )
