@@ -352,7 +352,7 @@ TASK-16 → TASK-17 (Railway deployment config)
 
 **Depends on:** TASK-10, TASK-09.
 
-**Status:** [ ] Done
+**Status:** [x] Done
 
 **Goal:** Implement `/start` — applies defaults if unset, resets conversation, starts it, and mentions `/help`.
 
