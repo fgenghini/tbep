@@ -6,6 +6,7 @@ from src.config import DEFAULT_PORT, AppConfig, ConfigError, load_config
 def test_load_config_reads_required_env_vars(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "telegram-token")
     monkeypatch.setenv("OPENAI_API_KEY", "openai-key")
+    monkeypatch.setenv("OPENROUTER_API_KEY", "openrouter-key")
     monkeypatch.setenv("WEBHOOK_SECRET_PATH", "secret-path")
     monkeypatch.setenv("PORT", "9000")
     monkeypatch.setenv("WEBHOOK_BASE_URL", "https://example.com")
@@ -18,6 +19,7 @@ def test_load_config_reads_required_env_vars(monkeypatch: pytest.MonkeyPatch) ->
         webhook_secret_path="secret-path",
         port=9000,
         webhook_base_url="https://example.com",
+        openrouter_api_key="openrouter-key",
     )
 
 
@@ -63,5 +65,36 @@ def test_load_config_raises_clear_error_for_missing_required_env_var(
     with pytest.raises(
         ConfigError,
         match="Missing required environment variable: TELEGRAM_BOT_TOKEN",
+    ):
+        load_config()
+
+
+def test_load_config_uses_openrouter_key_for_gemma_provider(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "telegram-token")
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.setenv("OPENROUTER_API_KEY", "openrouter-key")
+    monkeypatch.setenv("WEBHOOK_SECRET_PATH", "secret-path")
+    monkeypatch.setenv("LLM_PROVIDER", "gemma-openrouter")
+
+    config = load_config()
+
+    assert config.llm_provider == "gemma-openrouter"
+    assert config.openai_api_key is None
+    assert config.openrouter_api_key == "openrouter-key"
+
+
+def test_load_config_requires_openrouter_key_for_gemma_provider(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "telegram-token")
+    monkeypatch.setenv("WEBHOOK_SECRET_PATH", "secret-path")
+    monkeypatch.setenv("LLM_PROVIDER", "gemma-openrouter")
+    monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
+
+    with pytest.raises(
+        ConfigError,
+        match="Missing required environment variable: OPENROUTER_API_KEY",
     ):
         load_config()

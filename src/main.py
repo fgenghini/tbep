@@ -59,7 +59,11 @@ def build_application(
 
 def build_bot_components(config: AppConfig) -> BotComponents:
     user_state_store = UserStateStoreMemory()
-    llm_client_factory = LLMClientFactory(api_key=config.openai_api_key)
+    llm_client_factory = LLMClientFactory(
+        provider=config.llm_provider,
+        openai_api_key=config.openai_api_key,
+        openrouter_api_key=config.openrouter_api_key,
+    )
 
     return BotComponents(
         start=StartCommandProcessor(user_state_store, llm_client_factory),

@@ -35,7 +35,9 @@ Set these environment variables before running the bot:
 | Variable | Required | Description |
 | --- | --- | --- |
 | `TELEGRAM_BOT_TOKEN` | Yes | Bot token from BotFather. |
-| `OPENAI_API_KEY` | Yes | API key used by the ChatGPT client. |
+| `LLM_PROVIDER` | No | LLM provider. Defaults to `chatgpt`; set to `gemma-openrouter` to use Gemma through OpenRouter. |
+| `OPENAI_API_KEY` | For `chatgpt` | API key used by the ChatGPT client. |
+| `OPENROUTER_API_KEY` | For `gemma-openrouter` | API key used by the Gemma OpenRouter client. |
 | `WEBHOOK_SECRET_PATH` | Yes | Secret URL path Telegram will call for webhook updates. |
 | `WEBHOOK_BASE_URL` | Yes | Public HTTPS base URL for the deployed app. The bot registers `WEBHOOK_BASE_URL/WEBHOOK_SECRET_PATH` with Telegram. |
 | `PORT` | No | HTTP port for the webhook server. Defaults to `8000`; Railway provides this automatically. |
@@ -45,8 +47,8 @@ Set these environment variables before running the bot:
 1. Create or link a Railway project for this repository.
 2. Configure the project to deploy from the branch you want to run.
 3. Add the required environment variables in Railway:
-   `TELEGRAM_BOT_TOKEN`, `OPENAI_API_KEY`, `WEBHOOK_SECRET_PATH`, and
-   `WEBHOOK_BASE_URL`.
+   `TELEGRAM_BOT_TOKEN`, `WEBHOOK_SECRET_PATH`, `WEBHOOK_BASE_URL`, and the
+   API key for your selected `LLM_PROVIDER`.
 4. Set `WEBHOOK_BASE_URL` to the public Railway app URL, for example
    `https://your-service.up.railway.app`.
 5. Deploy the service. Railway supplies `PORT`; do not set it manually unless
