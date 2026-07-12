@@ -1,3 +1,4 @@
+import logging
 from typing import Any
 
 from src.commands.command_processor import CommandProcessor
@@ -8,6 +9,7 @@ DEFAULT_PERSONA = "a casual American person"
 DEFAULT_TOPIC = "casual daily conversation"
 FALLBACK_MESSAGE = "An error occurred. Try again in a moment."
 HELP_MENTION = "You can use /help for details."
+logger = logging.getLogger(__name__)
 
 
 class StartCommandProcessor(CommandProcessor):
@@ -40,6 +42,10 @@ class StartCommandProcessor(CommandProcessor):
             self.user_state_store.append_turn(user_id, "assistant", opening_msg)
             return f"{HELP_MENTION}\n\n{opening_msg}"
         except Exception:
+            logger.exception(
+                "Failed to generate start command opening message for user_id=%s",
+                user_id,
+            )
             return FALLBACK_MESSAGE
 
     def _apply_defaults(self, user_id: int) -> None:

@@ -1,5 +1,7 @@
 from unittest.mock import MagicMock
 
+import pytest
+
 from src.commands.topic_command_processor import TopicCommandProcessor
 from src.state.user_state_store import UserState
 from src.state.user_state_store_memory import UserStateStoreMemory
@@ -85,3 +87,23 @@ def test_process_returns_opening_message_from_llm() -> None:
 
     assert result == "So, what's your favorite ship?"
     llm_mock.send.assert_called_once()
+
+
+def test_process_returns_fallback_and_logs_on_error(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    store = UserStateStoreMemory()
+    factory_mock = MagicMock()
+    llm_mock = MagicMock()
+    factory_mock.create.return_value = llm_mock
+    llm_mock.send.side_effect = Exception("API error")
+
+    processor = TopicCommandProcessor(store, factory_mock)
+
+    with caplog.at_level("ERROR"):
+        result = processor.process(1, "ships")
+
+    assert result == "An error occurred. Try again in a moment."
+    assert (
+        "Failed to generate topic command opening message for user_id=1" in caplog.text
+    )

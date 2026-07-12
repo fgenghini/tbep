@@ -1,5 +1,7 @@
 from unittest.mock import MagicMock
 
+import pytest
+
 from src.commands.start_command_processor import (
     DEFAULT_PERSONA,
     DEFAULT_TOPIC,
@@ -59,3 +61,23 @@ def test_process_resets_history_and_returns_opening_message_with_help() -> None:
     assert store.get(1).history == [
         {"role": "assistant", "content": "How's your day going?"}
     ]
+
+
+def test_process_returns_fallback_and_logs_on_error(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    store = UserStateStoreMemory()
+    factory_mock = MagicMock()
+    llm_mock = MagicMock()
+    factory_mock.create.return_value = llm_mock
+    llm_mock.send.side_effect = Exception("API error")
+
+    processor = StartCommandProcessor(store, factory_mock)
+
+    with caplog.at_level("ERROR"):
+        result = processor.process(1, "")
+
+    assert result == "An error occurred. Try again in a moment."
+    assert (
+        "Failed to generate start command opening message for user_id=1" in caplog.text
+    )

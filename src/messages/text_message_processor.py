@@ -1,5 +1,9 @@
+import logging
+
 from src.messages.message_processor import MessageProcessor
 from src.state.user_state_store import UserState
+
+logger = logging.getLogger(__name__)
 
 
 class TextMessageProcessor(MessageProcessor):
@@ -15,6 +19,7 @@ class TextMessageProcessor(MessageProcessor):
                 "correction": correction,
             }
         except Exception:
+            logger.exception("Failed to process text message for user_id=%s", user_id)
             return {
                 "persona_reply": "An error occurred. Try again in a moment.",
                 "correction": None,

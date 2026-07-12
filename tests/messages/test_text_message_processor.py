@@ -1,5 +1,7 @@
 from unittest.mock import MagicMock
 
+import pytest
+
 from src.messages.text_message_processor import TextMessageProcessor
 from src.state.user_state_store_memory import UserStateStoreMemory
 
@@ -43,7 +45,9 @@ def test_process_returns_none_correction() -> None:
     assert result["correction"] is None
 
 
-def test_process_returns_fallback_on_error() -> None:
+def test_process_returns_fallback_on_error(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     store = UserStateStoreMemory()
     factory_mock = MagicMock()
     llm_mock = MagicMock()
@@ -52,10 +56,12 @@ def test_process_returns_fallback_on_error() -> None:
 
     processor = TextMessageProcessor(store, factory_mock)
 
-    result = processor.process(1, "Hello")
+    with caplog.at_level("ERROR"):
+        result = processor.process(1, "Hello")
 
     assert result["persona_reply"] == "An error occurred. Try again in a moment."
     assert result["correction"] is None
+    assert "Failed to process text message for user_id=1" in caplog.text
 
     # History shouldn't be updated on error
     state = store.get(1)
