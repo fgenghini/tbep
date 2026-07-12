@@ -5,6 +5,7 @@ HELP_TEXT = """Welcome to TBEP! Here are the available commands:
 /profile <persona> - Set a new persona and restart the conversation
 /topic <topic> - Set a new topic and restart the conversation
 /reset - Clear the conversation history but keep the persona and topic
+/stats - Show the current persona, topic, and stored message count
 /help - Show this help message
 
 Whenever you type a message, I will reply in character and provide English
