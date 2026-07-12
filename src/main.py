@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-import os
 from collections.abc import Callable, Coroutine
 from dataclasses import dataclass
 from typing import Any
@@ -28,8 +27,6 @@ from src.messages.text_message_processor import TextMessageProcessor
 from src.state.user_state_store_memory import UserStateStoreMemory
 
 logger = logging.getLogger(__name__)
-
-PUBLIC_WEBHOOK_ENV_VARS = ("WEBHOOK_BASE_URL", "PUBLIC_URL")
 
 
 @dataclass(frozen=True)
@@ -202,35 +199,16 @@ def _get_user_id(update: Update) -> int | None:
     return user.id
 
 
-def _build_webhook_url(config: AppConfig) -> str | None:
-    base_url = _get_public_base_url()
-    if base_url is None:
-        return None
-
-    return f"{base_url.rstrip('/')}/{config.webhook_secret_path.lstrip('/')}"
-
-
-def _get_public_base_url() -> str | None:
-    for env_var in PUBLIC_WEBHOOK_ENV_VARS:
-        value = os.environ.get(env_var)
-        if value:
-            if value.startswith("http://") or value.startswith("https://"):
-                return value
-            return f"https://{value}"
-    return None
-
-
 def run_webhook(
     application: Application[Any, Any, Any, Any, Any, Any],
     config: AppConfig,
 ) -> None:
-    webhook_url = _build_webhook_url(config)
-    if webhook_url is not None:
+    if config.webhook_url is not None:
         application.run_webhook(
             listen="0.0.0.0",
             port=config.port,
             url_path=config.webhook_secret_path,
-            webhook_url=webhook_url,
+            webhook_url=config.webhook_url,
         )
         return
 

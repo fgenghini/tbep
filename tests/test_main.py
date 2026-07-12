@@ -110,15 +110,13 @@ def test_build_application_registers_expected_handlers() -> None:
     assert len(application.error_handlers) == 1
 
 
-def test_run_webhook_uses_public_base_url_when_available(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    monkeypatch.setenv("WEBHOOK_BASE_URL", "example.com")
+def test_run_webhook_uses_configured_webhook_url() -> None:
     config = AppConfig(
         telegram_bot_token="telegram-token",
         openai_api_key="openai-key",
         webhook_secret_path="secret-path",
         port=9000,
+        webhook_base_url="https://example.com",
     )
     application = MagicMock()
 
