@@ -9,6 +9,7 @@ from src.commands.command_processor import CommandProcessor
 from src.config import AppConfig
 from src.main import (
     build_application,
+    EMPTY_PERSONA_REPLY_FALLBACK,
     handle_command,
     handle_error,
     handle_message,
@@ -69,6 +70,20 @@ def test_handle_message_omits_correction_when_none() -> None:
 
     processor.process.assert_called_once_with(123, "I am fine")
     message.reply_text.assert_awaited_once_with("That's great.")
+
+
+def test_handle_message_sends_fallback_when_persona_reply_is_empty() -> None:
+    update, message = make_update(text="hello")
+    processor = MagicMock(spec=MessageProcessor)
+    processor.process.return_value = {
+        "persona_reply": "   ",
+        "correction": None,
+    }
+
+    asyncio.run(handle_message(update, processor))
+
+    processor.process.assert_called_once_with(123, "hello")
+    message.reply_text.assert_awaited_once_with(EMPTY_PERSONA_REPLY_FALLBACK)
 
 
 def test_handle_error_logs_exception(caplog: pytest.LogCaptureFixture) -> None:

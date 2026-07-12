@@ -26,6 +26,9 @@ from src.messages.text_message_processor import TextMessageProcessor
 from src.state.user_state_store_memory import UserStateStoreMemory
 
 logger = logging.getLogger(__name__)
+EMPTY_PERSONA_REPLY_FALLBACK = (
+    "Sorry, I couldn't get a response. Please try again in a moment."
+)
 
 
 @dataclass(frozen=True)
@@ -148,6 +151,8 @@ async def handle_message(
     persona_reply = result["persona_reply"]
     if not isinstance(persona_reply, str):
         return
+    if not persona_reply.strip():
+        persona_reply = EMPTY_PERSONA_REPLY_FALLBACK
 
     await message.reply_text(persona_reply)
     correction = result.get("correction")
