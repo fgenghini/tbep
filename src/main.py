@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-from collections.abc import Callable, Coroutine
 from dataclasses import dataclass
 from typing import Any
 
@@ -20,7 +19,7 @@ from src.commands.profile_command_processor import ProfileCommandProcessor
 from src.commands.reset_command_processor import ResetCommandProcessor
 from src.commands.start_command_processor import StartCommandProcessor
 from src.commands.topic_command_processor import TopicCommandProcessor
-from src.config import AppConfig, load_config
+from src.config import AppConfig, ConfigError, load_config
 from src.llm.llm_client_factory import LLMClientFactory
 from src.messages.message_processor import MessageProcessor
 from src.messages.text_message_processor import TextMessageProcessor
@@ -41,6 +40,9 @@ class BotComponents:
 
 def main() -> None:
     config = load_config()
+    if config.webhook_url is None:
+        raise ConfigError("Missing required environment variable: WEBHOOK_BASE_URL")
+
     application = build_application(config)
     run_webhook(application, config)
 
@@ -77,65 +79,63 @@ def register_handlers(
     components: BotComponents,
 ) -> None:
     application.add_handler(
-        CommandHandler("start", make_command_callback(components.start, _empty_args))
+        CommandHandler(
+            "start",
+            lambda update, context: handle_command(update, components.start, ""),
+        )
     )
     application.add_handler(
         CommandHandler(
             "profile",
-            make_command_callback(components.profile, _join_context_args),
+            lambda update, context: handle_command(
+                update, components.profile, _join_context_args(context)
+            ),
         )
     )
     application.add_handler(
         CommandHandler(
             "topic",
-            make_command_callback(components.topic, _join_context_args),
+            lambda update, context: handle_command(
+                update, components.topic, _join_context_args(context)
+            ),
         )
     )
     application.add_handler(
-        CommandHandler("help", make_command_callback(components.help, _empty_args))
+        CommandHandler(
+            "help",
+            lambda update, context: handle_command(update, components.help, ""),
+        )
     )
     application.add_handler(
-        CommandHandler("reset", make_command_callback(components.reset, _empty_args))
+        CommandHandler(
+            "reset",
+            lambda update, context: handle_command(update, components.reset, ""),
+        )
     )
     application.add_handler(
         MessageHandler(
             filters.TEXT & ~filters.COMMAND,
-            make_message_callback(components.text),
+            lambda update, context: handle_message(update, components.text),
         )
     )
 
 
-def make_command_callback(
-    processor: CommandProcessor,
-    args_provider: Callable[[Any], str],
-) -> Callable[[Update, Any], Coroutine[Any, Any, None]]:
-    async def callback(update: Update, context: Any) -> None:
-        await handle_command(update, context, processor, args_provider(context))
-
-    return callback
-
-
-def make_message_callback(
-    processor: MessageProcessor,
-) -> Callable[[Update, Any], Coroutine[Any, Any, None]]:
-    async def callback(update: Update, context: Any) -> None:
-        await handle_message(update, context, processor)
-
-    return callback
-
-
 async def handle_command(
     update: Update,
-    context: Any,
     processor: CommandProcessor,
     args: str,
 ) -> None:
-    await _reply_command(update, processor, args)
+    message = update.message
+    user_id = _get_user_id(update)
+    if message is None or user_id is None:
+        return
+
+    response = processor.process(user_id, args)
+    await message.reply_text(response)
 
 
 async def handle_message(
     update: Update,
-    context: Any,
     processor: MessageProcessor,
 ) -> None:
     message = update.message
@@ -167,29 +167,11 @@ async def handle_error(update: object, context: Any) -> None:
     )
 
 
-async def _reply_command(
-    update: Update,
-    processor: CommandProcessor,
-    args: str,
-) -> None:
-    message = update.message
-    user_id = _get_user_id(update)
-    if message is None or user_id is None:
-        return
-
-    response = processor.process(user_id, args)
-    await message.reply_text(response)
-
-
 def _join_context_args(context: Any) -> str:
     args = getattr(context, "args", [])
     if not args:
         return ""
     return " ".join(args).strip()
-
-
-def _empty_args(context: Any) -> str:
-    return ""
 
 
 def _get_user_id(update: Update) -> int | None:
@@ -203,19 +185,14 @@ def run_webhook(
     application: Application[Any, Any, Any, Any, Any, Any],
     config: AppConfig,
 ) -> None:
-    if config.webhook_url is not None:
-        application.run_webhook(
-            listen="0.0.0.0",
-            port=config.port,
-            url_path=config.webhook_secret_path,
-            webhook_url=config.webhook_url,
-        )
-        return
+    if config.webhook_url is None:
+        raise ConfigError("Missing required environment variable: WEBHOOK_BASE_URL")
 
     application.run_webhook(
         listen="0.0.0.0",
         port=config.port,
         url_path=config.webhook_secret_path,
+        webhook_url=config.webhook_url,
     )
 
 

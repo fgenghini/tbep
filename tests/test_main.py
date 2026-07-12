@@ -9,51 +9,46 @@ from src.commands.command_processor import CommandProcessor
 from src.config import AppConfig
 from src.main import (
     build_application,
+    handle_command,
     handle_error,
-    make_command_callback,
-    make_message_callback,
+    handle_message,
+    main,
     run_webhook,
 )
 from src.messages.message_processor import MessageProcessor
 
 
-def test_make_command_callback_uses_args_provider() -> None:
+def test_handle_command_replies_with_processor_output() -> None:
     update, message = make_update()
-    context = SimpleNamespace(args=["a", "pirate"])
     processor = MagicMock(spec=CommandProcessor)
     processor.process.return_value = "profile set"
-    callback = make_command_callback(processor, lambda ctx: " ".join(ctx.args))
 
-    asyncio.run(callback(update, context))
+    asyncio.run(handle_command(update, processor, "a pirate"))
 
     processor.process.assert_called_once_with(123, "a pirate")
     message.reply_text.assert_awaited_once_with("profile set")
 
 
-def test_make_command_callback_supports_empty_args() -> None:
+def test_handle_command_supports_empty_args() -> None:
     update, message = make_update()
-    context = SimpleNamespace(args=[])
     processor = MagicMock(spec=CommandProcessor)
     processor.process.return_value = "opening message"
-    callback = make_command_callback(processor, lambda _ctx: "")
 
-    asyncio.run(callback(update, context))
+    asyncio.run(handle_command(update, processor, ""))
 
     processor.process.assert_called_once_with(123, "")
     message.reply_text.assert_awaited_once_with("opening message")
 
 
-def test_make_message_callback_sends_persona_reply_and_correction() -> None:
+def test_handle_message_sends_persona_reply_and_correction() -> None:
     update, message = make_update(text="I has coffee")
-    context = SimpleNamespace()
     processor = MagicMock(spec=MessageProcessor)
     processor.process.return_value = {
         "persona_reply": "Nice choice.",
         "correction": "I have coffee.",
     }
-    callback = make_message_callback(processor)
 
-    asyncio.run(callback(update, context))
+    asyncio.run(handle_message(update, processor))
 
     processor.process.assert_called_once_with(123, "I has coffee")
     assert message.reply_text.await_args_list == [
@@ -62,17 +57,15 @@ def test_make_message_callback_sends_persona_reply_and_correction() -> None:
     ]
 
 
-def test_make_message_callback_omits_correction_when_none() -> None:
+def test_handle_message_omits_correction_when_none() -> None:
     update, message = make_update(text="I am fine")
-    context = SimpleNamespace()
     processor = MagicMock(spec=MessageProcessor)
     processor.process.return_value = {
         "persona_reply": "That's great.",
         "correction": None,
     }
-    callback = make_message_callback(processor)
 
-    asyncio.run(callback(update, context))
+    asyncio.run(handle_message(update, processor))
 
     processor.process.assert_called_once_with(123, "I am fine")
     message.reply_text.assert_awaited_once_with("That's great.")
@@ -130,7 +123,7 @@ def test_run_webhook_uses_configured_webhook_url() -> None:
     )
 
 
-def test_run_webhook_omits_webhook_url_when_not_configured() -> None:
+def test_run_webhook_errors_when_webhook_url_is_not_configured() -> None:
     config = AppConfig(
         telegram_bot_token="telegram-token",
         openai_api_key="openai-key",
@@ -139,13 +132,28 @@ def test_run_webhook_omits_webhook_url_when_not_configured() -> None:
     )
     application = MagicMock()
 
-    run_webhook(application, config)
+    with pytest.raises(
+        RuntimeError,
+        match="Missing required environment variable: WEBHOOK_BASE_URL",
+    ):
+        run_webhook(application, config)
 
-    application.run_webhook.assert_called_once_with(
-        listen="0.0.0.0",
-        port=9000,
-        url_path="secret-path",
-    )
+    application.run_webhook.assert_not_called()
+
+
+def test_main_errors_when_webhook_url_is_not_configured(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "telegram-token")
+    monkeypatch.setenv("OPENAI_API_KEY", "openai-key")
+    monkeypatch.setenv("WEBHOOK_SECRET_PATH", "secret-path")
+    monkeypatch.delenv("WEBHOOK_BASE_URL", raising=False)
+
+    with pytest.raises(
+        RuntimeError,
+        match="Missing required environment variable: WEBHOOK_BASE_URL",
+    ):
+        main()
 
 
 def make_update(
