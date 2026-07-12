@@ -106,15 +106,16 @@ def test_build_application_registers_expected_handlers() -> None:
     application = build_application(config)
 
     registered = application.handlers[0]
-    assert len(registered) == 6
+    assert len(registered) == 7
     assert isinstance(registered[0], CommandHandler)
     assert registered[0].commands == frozenset({"start"})
     assert registered[1].commands == frozenset({"profile"})
     assert registered[2].commands == frozenset({"topic"})
     assert registered[3].commands == frozenset({"help"})
     assert registered[4].commands == frozenset({"reset"})
-    assert isinstance(registered[5], MessageHandler)
-    assert str(registered[5].filters) == "<filters.TEXT and <inverted filters.COMMAND>>"
+    assert registered[5].commands == frozenset({"stats"})
+    assert isinstance(registered[6], MessageHandler)
+    assert str(registered[6].filters) == "<filters.TEXT and <inverted filters.COMMAND>>"
     assert len(application.error_handlers) == 1
 
 

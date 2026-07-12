@@ -18,6 +18,7 @@ from src.commands.help_command_processor import HelpCommandProcessor
 from src.commands.profile_command_processor import ProfileCommandProcessor
 from src.commands.reset_command_processor import ResetCommandProcessor
 from src.commands.start_command_processor import StartCommandProcessor
+from src.commands.stats_command_processor import StatsCommandProcessor
 from src.commands.topic_command_processor import TopicCommandProcessor
 from src.config import AppConfig, ConfigError, load_config
 from src.llm.llm_client_factory import LLMClientFactory
@@ -38,6 +39,7 @@ class BotComponents:
     topic: TopicCommandProcessor
     help: HelpCommandProcessor
     reset: ResetCommandProcessor
+    stats: StatsCommandProcessor
     text: TextMessageProcessor
 
 
@@ -74,6 +76,7 @@ def build_bot_components(config: AppConfig) -> BotComponents:
         topic=TopicCommandProcessor(user_state_store, llm_client_factory),
         help=HelpCommandProcessor(user_state_store),
         reset=ResetCommandProcessor(user_state_store, llm_client_factory),
+        stats=StatsCommandProcessor(user_state_store),
         text=TextMessageProcessor(user_state_store, llm_client_factory),
     )
 
@@ -114,6 +117,12 @@ def register_handlers(
         CommandHandler(
             "reset",
             lambda update, context: handle_command(update, components.reset, ""),
+        )
+    )
+    application.add_handler(
+        CommandHandler(
+            "stats",
+            lambda update, context: handle_command(update, components.stats, ""),
         )
     )
     application.add_handler(
