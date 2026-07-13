@@ -136,12 +136,12 @@ class CommandProcessor(ABC):
 **Subclasses (one per command):**
 
 - `StartCommandProcessor` — applies default persona/topic if unset, resets conversation, generates and returns an in-character opening message.
-- `ProfileCommandProcessor` — sets persona from `args`, resets conversation history, generates and returns an in-character opening message using the (possibly default) topic.
-- `TopicCommandProcessor` — sets topic from `args`, resets conversation history, generates and returns an in-character opening message using the (possibly default) persona.
+- `ProfileCommandProcessor` — sets the persona from `args` and returns a confirmation without changing conversation history.
+- `TopicCommandProcessor` — sets the topic from `args` and returns a confirmation without changing conversation history.
 - `HelpCommandProcessor` — returns static help text describing commands and how corrections work.
-- `ResetCommandProcessor` — clears conversation history only (keeps persona/topic), generates and returns a new in-character opening message.
+- `ResetCommandProcessor` — clears conversation history only (keeps persona/topic) and returns a confirmation.
 
-Note: `StartCommandProcessor`, `ProfileCommandProcessor`, `TopicCommandProcessor`, and `ResetCommandProcessor` all need to trigger an LLM call to produce the opening message — they will use `MessageProcessor`/`LLMClient` machinery internally (see Section 5.4) rather than duplicating LLM-calling logic.
+Only `StartCommandProcessor` triggers an LLM call to produce an opening message. Profile and topic commands only update user state, while reset only clears history.
 
 ### 5.2 `MessageProcessor` (abstract base class)
 
@@ -212,7 +212,7 @@ class LLMClientFactory:
 ```
 
 - Defaults to returning `ChatGPTClient` when no provider is specified.
-- `TextMessageProcessor` (and the command processors that need to generate opening messages) obtain their `LLMClient` instance through this factory rather than instantiating a concrete class directly — this is the extension point for adding more providers later (e.g., Claude, Gemini) without changing calling code.
+- `TextMessageProcessor` and `StartCommandProcessor` obtain their `LLMClient` instance through this factory rather than instantiating a concrete class directly — this is the extension point for adding more providers later (e.g., Claude, Gemini) without changing calling code.
 
 ### 5.5 `UserStateStore` (abstract base class) / `UserStateStoreMemory` (implementation)
 
@@ -316,7 +316,7 @@ Each handler function is a thin adapter: it extracts `user_id`/`args`/`content` 
 
 ## 9. Error Handling
 
-- All `LLMClient.send()` calls are wrapped in try/except within `TextMessageProcessor` (and the command processors that trigger opening messages).
+- All `LLMClient.send()` calls are wrapped in try/except within `TextMessageProcessor` and `StartCommandProcessor`.
 - On any LLM error/timeout, the processor returns the fixed fallback text: **"An error occurred. Try again in a moment."** — sent as the only response for that turn (no correction message in this case).
 - Telegram API errors when sending messages are logged; `python-telegram-bot`'s built-in error handler (`Application.add_error_handler`) is used to catch and log unhandled exceptions across the app.
 
@@ -335,7 +335,7 @@ Each handler function is a thin adapter: it extracts `user_id`/`args`/`content` 
 
 Unit tests are in scope for this project. The `tests/` folder mirrors the `src/` folder structure (see Section 4), with one test module per source module. Key areas to cover:
 
-- `CommandProcessor` subclasses — correct state transitions (persona/topic set, history reset) and correct response generation, with the `LLMClient` mocked.
+- `CommandProcessor` subclasses — correct state transitions (persona/topic set, history reset), with the `LLMClient` mocked for `/start`.
 - `MessageProcessor` (`TextMessageProcessor`) — correct handling of persona reply + correction generation, correction omitted when none needed, fallback message returned on simulated LLM errors, with the `LLMClient` mocked.
 - `LLMClient` (`ChatGPTClient`) — request construction and response parsing, with the underlying OpenAI API call mocked.
 - `LLMClientFactory` — correct provider resolution (defaults to `chatgpt`; raises on unsupported provider).

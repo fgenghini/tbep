@@ -16,10 +16,10 @@
 
 ### Goals
 - Let users configure a conversational persona in natural language.
-- Let users set a topic, with the bot proactively opening the conversation.
+- Let users configure a conversation topic in natural language.
 - Maintain an in-character, natural-sounding conversation driven by an LLM.
 - Provide grammar/naturalness corrections on the user's messages, delivered plainly regardless of persona tone.
-- Support easy reset of the conversation via `/profile` and `/topic`.
+- Let users explicitly start a new conversation via `/start`.
 
 ### Non-Goals (for this release)
 - Voice chat (explicitly deferred to a later phase).
@@ -39,19 +39,19 @@
 3. User runs `/profile a grumpy old man from London who complains a lot`.
 4. Bot confirms the persona is set.
 5. User runs `/topic ordering food at a restaurant`.
-6. Bot immediately opens the conversation in character, introducing the topic naturally (e.g., in-character small talk that leads into the topic — not a meta-announcement like "Let's talk about restaurants").
-7. User replies; bot responds in character AND appends a separate, clearly-formatted correction of the user's last message (if there were errors — see Section 5.3).
-8. Conversation continues turn by turn.
-9. User can run `/profile` or `/topic` again at any time to reset and start fresh.
+6. Bot confirms the topic is set.
+7. User runs `/start`; the bot opens the conversation in character, naturally introducing the topic.
+8. User replies; bot responds in character AND appends a separate, clearly-formatted correction of the user's last message (if there were errors — see Section 5.3).
+9. Conversation continues turn by turn.
 
 ---
 
 ## 4. Key Concepts
 
 - **Profile (Persona):** A free-text description of the character/personality the bot should roleplay as during conversation. Affects tone, vocabulary, slang usage, formality — but never affects the correction layer.
-- **Topic:** A free-text description of the subject the conversation should center on. Setting a topic triggers the bot to immediately produce an in-character opening message that naturally leads into that subject.
+- **Topic:** A free-text description of the subject the conversation should center on.
 - **Conversation turn:** One user message + one bot response. Each bot response has two parts: (a) the in-character reply, (b) the correction/feedback on the user's prior message.
-- **Reset:** Both `/profile` and `/topic` clear prior conversation history/context and start a new session state.
+- **Start:** `/start` clears prior conversation history/context and starts a new session using the configured profile and topic.
 
 ---
 
@@ -62,18 +62,18 @@
 | Command | Behavior |
 |---|---|
 | `/start` | Onboards new users with a short greeting that mentions the `/help` command for details on how the bot works. Applies the default persona ("casual American person") and default topic ("casual daily conversation"), and immediately starts the conversation with an in-character opening message, so the bot is usable without any configuration. |
-| `/profile <description>` | Sets or replaces the persona. Resets the conversation (clears message history/context). Immediately starts a new conversation in character using the current topic (default topic if none was explicitly set). |
-| `/topic <description>` | Sets or replaces the topic. Resets the conversation. Bot immediately sends an in-character opening message that naturally introduces/leads into the topic — no separate "confirmation" message before it; the opening message *is* the confirmation, delivered in persona. Uses the current persona (default persona if none was explicitly set). |
+| `/profile <description>` | Sets or replaces the persona without changing conversation history or starting a conversation. |
+| `/topic <description>` | Sets or replaces the topic without changing conversation history or starting a conversation. |
 | `/help` | Explains available commands and how corrections work. |
-| `/reset` | Explicit reset without changing profile/topic — clears conversation history and immediately starts a new in-character opening message. |
+| `/reset` | Clears conversation history without changing profile/topic or starting a conversation. |
 
-**Defaults:** A brand-new user (or one who hasn't customized yet) gets persona = "a casual American person" and topic = "casual daily conversation." Both `/profile` and `/topic` — as well as `/start` — immediately trigger an in-character opening message using whatever persona/topic is currently active (custom or default).
+**Defaults:** When `/start` is used, an unconfigured persona defaults to "a casual American person" and an unconfigured topic defaults to "casual daily conversation." Only `/start` triggers an in-character opening message.
 
 ### 5.2 Conversation Behavior (In-Character Layer)
 - The bot must respond as naturally and human-like as possible, consistent with the configured persona (tone, vocabulary, slang, formality, typical phrasing).
 - The bot should maintain conversation continuity/context within a session (i.e., remember what's been said since the last reset).
 - The bot should avoid breaking character within the in-character portion of its reply (e.g., no meta-commentary like "As an AI...").
-- When `/topic` is set, the very next bot message (with no user input required) must open the conversation in character, naturally incorporating the topic.
+- When `/start` is used, the bot must open the conversation in character, naturally incorporating the configured topic.
 
 ### 5.3 Correction Layer
 - After each user message, the bot evaluates it for grammar errors, awkward phrasing, or unnatural word choice.
@@ -89,7 +89,7 @@
 
 ### 5.5 State & Reset Behavior
 - Each user has their own independent bot state (persona, topic, conversation history).
-- Running `/profile` or `/topic` clears the existing conversation history so the LLM doesn't carry over context from a prior, now-irrelevant scenario.
+- Running `/start` clears the existing conversation history before creating the opening message.
 - Persona and topic settings themselves persist independently of each other unless explicitly overwritten (e.g., changing topic does not require re-entering the profile — the last-set profile is reused with the new topic, and vice versa).
 - **Conversation history for v1:** the full session history (since the last reset) is sent to the LLM as context — no truncation or capping in this release. Capping/summarization may be introduced later if context size or cost becomes a concern.
 
@@ -123,10 +123,9 @@
 | Default persona/topic for new/unconfigured users? | Yes — default persona: "a casual American person"; default topic: "casual daily conversation." Conversation starts immediately using these defaults. |
 | Show a "looks good!" note when there are no errors? | No — say nothing; only the in-character reply is sent when no corrections are needed. |
 | Cap conversation history sent to the LLM? | No, not for v1 — use full session history since last reset. Revisit if cost/context size becomes an issue. |
-| Should `/profile` alone also auto-start the conversation? | Yes — both `/profile` and `/topic` immediately trigger an in-character opening message. |
+| Should `/profile` or `/topic` auto-start the conversation? | No — they only update user state. The user starts a conversation explicitly with `/start`. |
 | Moderation/guardrails on user-defined personas? | No — left unrestricted for this release. |
 | Include `/help` and `/reset` commands in v1? | Yes — both are part of the required command set. |
 | Correction format — separate message or combined with persona reply? | Separate Telegram messages — persona reply and correction are sent independently. |
 | Fallback message on LLM error/timeout? | Fixed text: "An error occurred. Try again in a moment." |
 | Should onboarding explain full bot usage inline? | No — greeting just mentions that `/help` is available for details. |
-
