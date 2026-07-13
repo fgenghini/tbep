@@ -59,7 +59,9 @@ def test_process_returns_fallback_on_error(
     with caplog.at_level("ERROR"):
         result = processor.process(1, "Hello")
 
-    assert result["persona_reply"] == "An error occurred. Try again in a moment."
+    assert (
+        result["persona_reply"] == "An error occurred. Try again in a moment.\n\nAPI failed"
+    )
     assert result["correction"] is None
     assert "Failed to process text message for user_id=1" in caplog.text
 

@@ -103,7 +103,7 @@ def test_process_returns_fallback_and_logs_on_error(
     with caplog.at_level("ERROR"):
         result = processor.process(1, "ships")
 
-    assert result == "An error occurred. Try again in a moment."
+    assert result == "An error occurred. Try again in a moment.\n\nAPI error"
     assert (
         "Failed to generate topic command opening message for user_id=1" in caplog.text
     )

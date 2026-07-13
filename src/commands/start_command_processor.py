@@ -1,12 +1,12 @@
 import logging
 
 from src.commands.command_processor import CommandProcessor
+from src.error_messages import format_fallback_message
 from src.messages.message_processor import LLMClientFactoryProtocol
 from src.state.user_state_store import UserStateStore
 
 DEFAULT_PERSONA = "a casual American person"
 DEFAULT_TOPIC = "casual daily conversation"
-FALLBACK_MESSAGE = "An error occurred. Try again in a moment."
 HELP_MENTION = "You can use /help for details."
 logger = logging.getLogger(__name__)
 
@@ -39,12 +39,12 @@ class StartCommandProcessor(CommandProcessor):
             opening_msg = self.llm_client.send(messages)
             self.user_state_store.append_turn(user_id, "assistant", opening_msg)
             return f"{HELP_MENTION}\n\n{opening_msg}"
-        except Exception:
+        except Exception as error:
             logger.exception(
                 "Failed to generate start command opening message for user_id=%s",
                 user_id,
             )
-            return FALLBACK_MESSAGE
+            return format_fallback_message(error)
 
     def _apply_defaults(self, user_id: int) -> None:
         state = self.user_state_store.get(user_id)

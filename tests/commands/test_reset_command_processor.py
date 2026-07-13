@@ -45,7 +45,7 @@ def test_process_error(caplog: pytest.LogCaptureFixture) -> None:
     with caplog.at_level("ERROR"):
         result = processor.process(1, "")
 
-    assert result == "An error occurred. Try again in a moment."
+    assert result == "An error occurred. Try again in a moment.\n\nAPI error"
     assert (
         "Failed to generate reset command opening message for user_id=1" in caplog.text
     )
