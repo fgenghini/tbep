@@ -1,6 +1,7 @@
 import logging
 
 from src.commands.command_processor import CommandProcessor
+from src.error_messages import format_fallback_message
 from src.messages.message_processor import LLMClientFactoryProtocol
 from src.state.user_state_store import UserStateStore
 
@@ -40,9 +41,9 @@ class ProfileCommandProcessor(CommandProcessor):
             opening_msg = self.llm_client.send(messages)
             self.user_state_store.append_turn(user_id, "assistant", opening_msg)
             return opening_msg
-        except Exception:
+        except Exception as error:
             logger.exception(
                 "Failed to generate profile command opening message for user_id=%s",
                 user_id,
             )
-            return "An error occurred. Try again in a moment."
+            return format_fallback_message(error)

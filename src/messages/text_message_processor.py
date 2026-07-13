@@ -1,5 +1,6 @@
 import logging
 
+from src.error_messages import format_fallback_message
 from src.messages.message_processor import MessageProcessor
 from src.state.user_state_store import UserState
 
@@ -18,10 +19,10 @@ class TextMessageProcessor(MessageProcessor):
                 "persona_reply": persona_reply,
                 "correction": correction,
             }
-        except Exception:
+        except Exception as error:
             logger.exception("Failed to process text message for user_id=%s", user_id)
             return {
-                "persona_reply": "An error occurred. Try again in a moment.",
+                "persona_reply": format_fallback_message(error),
                 "correction": None,
             }
 
