@@ -290,14 +290,14 @@ TASK-16 → TASK-17 (Railway deployment config)
 
 **Status:** [x] Done
 
-**Goal:** Implement `/reset` — clears history only, then generates a new opening message.
+**Goal:** Implement `/reset` — clears history without starting a conversation.
 
 **Scope:**
-- Implement `ResetCommandProcessor(CommandProcessor)`, using `UserStateStore.reset_history()` and then delegating to `TextMessageProcessor`/`LLMClient` machinery to produce a fresh in-character opening message using the existing persona/topic.
+- Implement `ResetCommandProcessor(CommandProcessor)`, using `UserStateStore.reset_history()` and returning a confirmation that directs the user to `/start`.
 
 **Unit tests:**
 - `process()` calls `reset_history()` on the (mocked) `UserStateStore`.
-- `process()` returns an in-character opening message generated via the (mocked) LLM path.
+- `process()` does not call the LLM or append an opening message.
 - Persona/topic are left unchanged after `process()`.
 
 **PR gate:** ruff, mypy, pytest all pass.
@@ -310,17 +310,15 @@ TASK-16 → TASK-17 (Railway deployment config)
 
 **Status:** [x] Done
 
-**Goal:** Implement `/profile` — sets persona, resets conversation, starts a new conversation.
+**Goal:** Implement `/profile` — sets the persona without starting a conversation.
 
 **Scope:**
-- Implement `ProfileCommandProcessor(CommandProcessor)`: sets persona from `args` via `UserStateStore.set_persona()`, resets history, and generates an opening message using the (possibly default) topic.
-- Apply default topic ("casual daily conversation") if none is set yet, per PRD defaults.
+- Implement `ProfileCommandProcessor(CommandProcessor)`: sets persona from `args` via `UserStateStore.set_persona()` and returns a confirmation that directs the user to `/start`.
 
 **Unit tests:**
 - `process()` sets the persona from `args` on the (mocked) `UserStateStore`.
-- `process()` resets history.
-- `process()` applies the default topic when none was previously set.
-- `process()` returns an in-character opening message generated via the (mocked) LLM path.
+- `process()` leaves topic and history unchanged.
+- `process()` does not call the LLM or append an opening message.
 
 **PR gate:** ruff, mypy, pytest all pass.
 
@@ -332,17 +330,15 @@ TASK-16 → TASK-17 (Railway deployment config)
 
 **Status:** [x] Done
 
-**Goal:** Implement `/topic` — sets topic, resets conversation, starts a new conversation.
+**Goal:** Implement `/topic` — sets the topic without starting a conversation.
 
 **Scope:**
-- Implement `TopicCommandProcessor(CommandProcessor)`: sets topic from `args`, resets history, and generates an opening message using the (possibly default) persona.
-- Apply default persona ("a casual American person") if none is set yet, per PRD defaults.
+- Implement `TopicCommandProcessor(CommandProcessor)`: sets topic from `args` and returns a confirmation that directs the user to `/start`.
 
 **Unit tests:**
 - `process()` sets the topic from `args` on the (mocked) `UserStateStore`.
-- `process()` resets history.
-- `process()` applies the default persona when none was previously set.
-- `process()` returns an in-character opening message generated via the (mocked) LLM path.
+- `process()` leaves persona and history unchanged.
+- `process()` does not call the LLM or append an opening message.
 
 **PR gate:** ruff, mypy, pytest all pass.
 

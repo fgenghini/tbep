@@ -72,10 +72,10 @@ def build_bot_components(config: AppConfig) -> BotComponents:
 
     return BotComponents(
         start=StartCommandProcessor(user_state_store, llm_client_factory),
-        profile=ProfileCommandProcessor(user_state_store, llm_client_factory),
-        topic=TopicCommandProcessor(user_state_store, llm_client_factory),
+        profile=ProfileCommandProcessor(user_state_store),
+        topic=TopicCommandProcessor(user_state_store),
         help=HelpCommandProcessor(user_state_store),
-        reset=ResetCommandProcessor(user_state_store, llm_client_factory),
+        reset=ResetCommandProcessor(user_state_store),
         stats=StatsCommandProcessor(user_state_store),
         text=TextMessageProcessor(user_state_store, llm_client_factory),
     )
