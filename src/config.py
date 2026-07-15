@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 DEFAULT_PORT = 8000
 DEFAULT_LLM_PROVIDER = "chatgpt"
-OPENROUTER_PROVIDER = "gemma-openrouter"
+OPENROUTER_PROVIDER = "openrouter"
 REQUIRED_ENV_VARS = (
     "TELEGRAM_BOT_TOKEN",
     "WEBHOOK_SECRET_PATH",

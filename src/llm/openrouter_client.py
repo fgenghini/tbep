@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import urllib.error
 import urllib.request
 from typing import Any
@@ -8,16 +9,22 @@ from typing import Any
 from src.llm.llm_client import LLMClient
 
 OPENROUTER_CHAT_COMPLETIONS_URL = "https://openrouter.ai/api/v1/chat/completions"
+OPENROUTER_MODEL_ENV_VAR = "OPENROUTER_MODEL"
+DEFAULT_OPENROUTER_MODEL = "openai/gpt-4o-mini"
 
 
-class GemmaOpenRouterClientError(Exception):
+class OpenRouterClientError(Exception):
     pass
 
 
-class GemmaOpenRouterClient(LLMClient):
+class OpenRouterClient(LLMClient):
     def __init__(self, api_key: str, model: str | None = None, **config: Any) -> None:
         super().__init__(api_key, model, **config)
-        self.model_name = model or "google/gemma-4-31b-it:free"
+        self.model_name = (
+            model
+            or os.getenv(OPENROUTER_MODEL_ENV_VAR, DEFAULT_OPENROUTER_MODEL).strip()
+            or DEFAULT_OPENROUTER_MODEL
+        )
         self.reasoning_enabled = bool(config.get("reasoning_enabled", True))
         self.timeout = float(config.get("timeout", 30))
 
@@ -32,7 +39,7 @@ class GemmaOpenRouterClient(LLMClient):
             ValueError,
             urllib.error.URLError,
         ) as e:
-            raise GemmaOpenRouterClientError(f"OpenRouter API Error: {e}") from e
+            raise OpenRouterClientError(f"OpenRouter API Error: {e}") from e
 
     def _build_request_payload(self, messages: list[dict[str, str]]) -> dict[str, Any]:
         payload: dict[str, Any] = {

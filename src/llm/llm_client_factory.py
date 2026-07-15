@@ -2,12 +2,13 @@ import os
 from typing import Any
 
 from src.llm.chatgpt_client import ChatGPTClient
-from src.llm.gemma_openrouter_client import GemmaOpenRouterClient
 from src.llm.llm_client import LLMClient
+from src.llm.openrouter_client import OpenRouterClient
 
-DEFAULT_PROVIDER = "chatgpt"
+CHATGPT_PROVIDER = "chatgpt"
+DEFAULT_PROVIDER = CHATGPT_PROVIDER
 PROVIDER_ENV_VAR = "LLM_PROVIDER"
-GEMMA_OPENROUTER_PROVIDER = "gemma-openrouter"
+OPENROUTER_PROVIDER = "openrouter"
 
 
 class LLMClientFactory:
@@ -22,12 +23,12 @@ class LLMClientFactory:
             or DEFAULT_PROVIDER
         )
 
-        if provider == "chatgpt":
+        if provider == CHATGPT_PROVIDER:
             api_key = config.pop("api_key", None) or config.pop("openai_api_key", "")
             return ChatGPTClient(api_key=api_key, **config)
-        if provider == GEMMA_OPENROUTER_PROVIDER:
+        if provider == OPENROUTER_PROVIDER:
             api_key = config.pop("openrouter_api_key", None) or config.pop(
                 "api_key", ""
             )
-            return GemmaOpenRouterClient(api_key=api_key, **config)
+            return OpenRouterClient(api_key=api_key, **config)
         raise ValueError(f"Unsupported provider: {provider}")
