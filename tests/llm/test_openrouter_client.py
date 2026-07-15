@@ -6,7 +6,7 @@ import pytest
 from src.llm.openrouter_client import (
     DEFAULT_OPENROUTER_MODEL,
     OPENROUTER_CHAT_COMPLETIONS_URL,
-    OPENROUTER_MODEL_ENV_VAR,
+    OPENROUTER_MODEL,
     OpenRouterClient,
     OpenRouterClientError,
 )
@@ -15,7 +15,7 @@ from src.llm.openrouter_client import (
 def test_build_request_payload_defaults_to_openrouter_model_with_reasoning(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.delenv(OPENROUTER_MODEL_ENV_VAR, raising=False)
+    monkeypatch.delenv(OPENROUTER_MODEL, raising=False)
     client = OpenRouterClient(api_key="fake-key")
     messages = [{"role": "user", "content": "hello"}]
 
@@ -31,7 +31,7 @@ def test_build_request_payload_defaults_to_openrouter_model_with_reasoning(
 def test_build_request_payload_supports_env_model_override(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setenv(OPENROUTER_MODEL_ENV_VAR, "anthropic/claude-sonnet-4")
+    monkeypatch.setenv(OPENROUTER_MODEL, "anthropic/claude-sonnet-4")
     client = OpenRouterClient(api_key="fake-key")
 
     payload = client._build_request_payload([])

@@ -9,8 +9,8 @@ from typing import Any
 from src.llm.llm_client import LLMClient
 
 OPENROUTER_CHAT_COMPLETIONS_URL = "https://openrouter.ai/api/v1/chat/completions"
-OPENROUTER_MODEL_ENV_VAR = "OPENROUTER_MODEL"
-DEFAULT_OPENROUTER_MODEL = "openai/gpt-4o-mini"
+OPENROUTER_MODEL = "OPENROUTER_MODEL"
+DEFAULT_OPENROUTER_MODEL = "google/gemma-4-31b-it:free"
 
 
 class OpenRouterClientError(Exception):
@@ -22,8 +22,7 @@ class OpenRouterClient(LLMClient):
         super().__init__(api_key, model, **config)
         self.model_name = (
             model
-            or os.getenv(OPENROUTER_MODEL_ENV_VAR, DEFAULT_OPENROUTER_MODEL).strip()
-            or DEFAULT_OPENROUTER_MODEL
+            or os.getenv(OPENROUTER_MODEL, DEFAULT_OPENROUTER_MODEL).strip()
         )
         self.reasoning_enabled = bool(config.get("reasoning_enabled", True))
         self.timeout = float(config.get("timeout", 30))
