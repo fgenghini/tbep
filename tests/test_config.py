@@ -69,28 +69,28 @@ def test_load_config_raises_clear_error_for_missing_required_env_var(
         load_config()
 
 
-def test_load_config_uses_openrouter_key_for_gemma_provider(
+def test_load_config_uses_openrouter_key_for_openrouter_provider(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "telegram-token")
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     monkeypatch.setenv("OPENROUTER_API_KEY", "openrouter-key")
     monkeypatch.setenv("WEBHOOK_SECRET_PATH", "secret-path")
-    monkeypatch.setenv("LLM_PROVIDER", "gemma-openrouter")
+    monkeypatch.setenv("LLM_PROVIDER", "openrouter")
 
     config = load_config()
 
-    assert config.llm_provider == "gemma-openrouter"
+    assert config.llm_provider == "openrouter"
     assert config.openai_api_key is None
     assert config.openrouter_api_key == "openrouter-key"
 
 
-def test_load_config_requires_openrouter_key_for_gemma_provider(
+def test_load_config_requires_openrouter_key_for_openrouter_provider(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "telegram-token")
     monkeypatch.setenv("WEBHOOK_SECRET_PATH", "secret-path")
-    monkeypatch.setenv("LLM_PROVIDER", "gemma-openrouter")
+    monkeypatch.setenv("LLM_PROVIDER", "openrouter")
     monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
 
     with pytest.raises(

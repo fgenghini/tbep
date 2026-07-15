@@ -35,9 +35,10 @@ Set these environment variables before running the bot:
 | Variable | Required | Description |
 | --- | --- | --- |
 | `TELEGRAM_BOT_TOKEN` | Yes | Bot token from BotFather. |
-| `LLM_PROVIDER` | No | LLM provider. Defaults to `chatgpt`; set to `gemma-openrouter` to use Gemma through OpenRouter. |
+| `LLM_PROVIDER` | No | LLM provider. Defaults to `chatgpt`; set to `openrouter` to use OpenRouter. |
 | `OPENAI_API_KEY` | For `chatgpt` | API key used by the ChatGPT client. |
-| `OPENROUTER_API_KEY` | For `gemma-openrouter` | API key used by the Gemma OpenRouter client. |
+| `OPENROUTER_API_KEY` | For `openrouter` | API key used by the OpenRouter client. |
+| `OPENROUTER_MODEL` | No | OpenRouter model name. Defaults to `google/gemma-4-31b-it:free`. |
 | `WEBHOOK_SECRET_PATH` | Yes | Secret URL path Telegram will call for webhook updates. |
 | `WEBHOOK_BASE_URL` | Yes | Public HTTPS base URL for the deployed app. The bot registers `WEBHOOK_BASE_URL/WEBHOOK_SECRET_PATH` with Telegram. |
 | `PORT` | No | HTTP port for the webhook server. Defaults to `8000`; Railway provides this automatically. |

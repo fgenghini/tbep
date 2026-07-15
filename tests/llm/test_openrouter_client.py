@@ -3,28 +3,44 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.llm.gemma_openrouter_client import (
+from src.llm.openrouter_client import (
+    DEFAULT_OPENROUTER_MODEL,
     OPENROUTER_CHAT_COMPLETIONS_URL,
-    GemmaOpenRouterClient,
-    GemmaOpenRouterClientError,
+    OPENROUTER_MODEL,
+    OpenRouterClient,
+    OpenRouterClientError,
 )
 
 
-def test_build_request_payload_defaults_to_gemma_model_with_reasoning() -> None:
-    client = GemmaOpenRouterClient(api_key="fake-key")
+def test_build_request_payload_defaults_to_openrouter_model_with_reasoning(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv(OPENROUTER_MODEL, raising=False)
+    client = OpenRouterClient(api_key="fake-key")
     messages = [{"role": "user", "content": "hello"}]
 
     payload = client._build_request_payload(messages)
 
     assert payload == {
-        "model": "google/gemma-4-31b-it:free",
+        "model": DEFAULT_OPENROUTER_MODEL,
         "messages": messages,
         "reasoning": {"enabled": True},
     }
 
 
+def test_build_request_payload_supports_env_model_override(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv(OPENROUTER_MODEL, "anthropic/claude-sonnet-4")
+    client = OpenRouterClient(api_key="fake-key")
+
+    payload = client._build_request_payload([])
+
+    assert payload["model"] == "anthropic/claude-sonnet-4"
+
+
 def test_build_request_payload_supports_model_override() -> None:
-    client = GemmaOpenRouterClient(api_key="fake-key", model="custom-model")
+    client = OpenRouterClient(api_key="fake-key", model="custom-model")
 
     payload = client._build_request_payload([])
 
@@ -32,19 +48,19 @@ def test_build_request_payload_supports_model_override() -> None:
 
 
 def test_parse_response_success() -> None:
-    client = GemmaOpenRouterClient(api_key="fake-key")
+    client = OpenRouterClient(api_key="fake-key")
     response = {"choices": [{"message": {"content": "parsed text"}}]}
 
     assert client._parse_response(response) == "parsed text"
 
 
 def test_parse_response_empty() -> None:
-    client = GemmaOpenRouterClient(api_key="fake-key")
+    client = OpenRouterClient(api_key="fake-key")
 
     assert client._parse_response({"choices": []}) == ""
 
 
-@patch("src.llm.gemma_openrouter_client.urllib.request.urlopen")
+@patch("src.llm.openrouter_client.urllib.request.urlopen")
 def test_send_success(mock_urlopen: MagicMock) -> None:
     mock_response = MagicMock()
     mock_response.read.return_value = json.dumps(
@@ -52,7 +68,7 @@ def test_send_success(mock_urlopen: MagicMock) -> None:
     ).encode("utf-8")
     mock_urlopen.return_value.__enter__.return_value = mock_response
 
-    client = GemmaOpenRouterClient(api_key="fake-key", model="test-model")
+    client = OpenRouterClient(api_key="fake-key", model="test-model")
 
     result = client.send([{"role": "user", "content": "hi"}])
 
@@ -67,10 +83,10 @@ def test_send_success(mock_urlopen: MagicMock) -> None:
     }
 
 
-@patch("src.llm.gemma_openrouter_client.urllib.request.urlopen")
+@patch("src.llm.openrouter_client.urllib.request.urlopen")
 def test_send_error(mock_urlopen: MagicMock) -> None:
     mock_urlopen.side_effect = ValueError("bad response")
-    client = GemmaOpenRouterClient(api_key="fake-key")
+    client = OpenRouterClient(api_key="fake-key")
 
-    with pytest.raises(GemmaOpenRouterClientError, match="OpenRouter API Error:"):
+    with pytest.raises(OpenRouterClientError, match="OpenRouter API Error:"):
         client.send([{"role": "user", "content": "hi"}])
