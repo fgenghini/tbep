@@ -47,6 +47,7 @@ TASK-10 + TASK-09 → TASK-15 (StartCommandProcessor)
 
 TASK-11 + TASK-12 + TASK-13 + TASK-14 + TASK-15 + TASK-02 → TASK-16 (main.py wiring + webhook)
 TASK-16 → TASK-17 (Railway deployment config)
+TASK-17 → TASK-18 (Migrate runtime from Railway to Cloudflare Workers)
 ```
 
 ---
@@ -408,8 +409,47 @@ TASK-16 → TASK-17 (Railway deployment config)
 
 ---
 
+## TASK-18: Migrate Runtime from Railway to Cloudflare Workers
+
+**Depends on:** TASK-17.
+
+**Status:** [ ] Not started
+
+**Goal:** Run the same Telegram bot service as a Python Cloudflare Worker, preserving its externally visible behavior while replacing Railway-specific process hosting with the Cloudflare Workers request model and tooling.
+
+**Scope:**
+- Add the Python Workers toolchain and Wrangler configuration required to develop and deploy the service (including `workers-py`/`pywrangler`, a Worker entry point, a current compatibility date, and the Python Workers compatibility flag). Keep `uv` as the Python dependency manager and document the Node.js prerequisite used by Wrangler.
+- Replace the long-running `Application.run_webhook(...)` server with a Python `WorkerEntrypoint.fetch(...)` handler. It must accept Telegram's JSON webhook updates only at `/<WEBHOOK_SECRET_PATH>`, reject unsupported methods/paths, route all existing commands (`/start`, `/profile`, `/topic`, `/help`, `/reset`, `/stats`) and plain-text messages, and return an HTTP response promptly.
+- Preserve current bot behavior: the same processors and fallback messages remain authoritative, command arguments are parsed as they are today, and a persona reply plus correction is sent as two separate Telegram messages. Keep one component graph per warm Worker isolate. State remains deliberately ephemeral and best-effort: it may reset when an isolate is replaced and is not guaranteed to follow a user across isolates. Do not introduce a database, KV, or Durable Object as part of this migration; durable state is a future improvement.
+- Replace `python-telegram-bot`'s web-server/dispatch/reply machinery with the smallest Worker-compatible Python adapter needed to parse Telegram updates and call the Telegram Bot API. Remove `python-telegram-bot` if it is no longer used after that adapter is in place.
+- Make all outbound HTTP work Worker-compatible and non-blocking. Convert the LLM interface and its callers to async, use `AsyncOpenAI` for ChatGPT, replace the synchronous `urllib` OpenRouter call with a supported async HTTP path, and use the same async path for Telegram replies. Preserve provider selection, payloads, response parsing, timeouts, and existing user-facing error handling.
+- Load Worker bindings/secrets through the environment passed to the Worker rather than relying on Railway process variables. Retain `TELEGRAM_BOT_TOKEN`, `LLM_PROVIDER`, `OPENAI_API_KEY`, `OPENROUTER_API_KEY`, `OPENROUTER_MODEL`, and `WEBHOOK_SECRET_PATH` as applicable; remove the no-longer-relevant `PORT` and `WEBHOOK_BASE_URL` settings.
+- Configure local secrets with an ignored `.dev.vars` example and production secrets with Wrangler. Ensure real credentials are never committed, and document commands for local development, secret upload, deployment, log inspection, and rollback.
+- Move webhook registration out of application startup. Document the post-deploy Telegram `setWebhook` step using the deployed Worker URL plus the secret path, along with `getWebhookInfo` verification and a safe cutover sequence that avoids both deployments processing updates simultaneously.
+- Remove the Railway `Procfile` and all current Railway deployment/setup guidance. Update `README.md`, `docs/ARCH_TBEP.md`, `docs/PRD_TBEP.md`, configuration comments, and repository diagrams so they describe the Cloudflare Worker request lifecycle, disclose the per-isolate ephemeral-state limitation, and no longer claim that the app binds a port or registers its webhook on startup.
+- Verify dependency compatibility in the actual Python Workers runtime with `uv run pywrangler dev`; importing successfully in desktop CPython is not sufficient. Keep the Worker bundle minimal and exclude bytecode/cache files from Python module packaging.
+
+**Unit and integration tests:**
+- Update existing LLM, processor, and handler tests for async interfaces without weakening their behavioral assertions.
+- Add Worker-entry-point tests for the secret path, HTTP method checks, malformed/irrelevant Telegram updates, every registered command, plain text, the two-message persona/correction response, Telegram API failures, and success/error HTTP responses.
+- Mock all external Telegram and LLM calls in the automated suite; no test may use live credentials or make a real network request.
+- Run a local smoke test through `uv run pywrangler dev` that posts representative Telegram update payloads and confirms the Worker reaches the mocked/stubbed outbound boundary.
+- After deploying to a non-production Worker, verify `/start`, `/profile`, `/topic`, `/help`, `/reset`, `/stats`, plain conversation, corrections, both LLM providers, and expected state reset after an isolate restart before cutting the production webhook over.
+
+**Acceptance criteria:**
+- There is no long-lived HTTP server, bound `PORT`, Railway `Procfile`, or startup-time webhook registration left in the runtime.
+- `uv run pywrangler dev` starts the Python Worker locally and `uv run pywrangler deploy` can package and deploy it successfully.
+- Telegram delivers updates to the Worker and all existing user-visible flows behave the same as before the migration.
+- The PRD and architecture explicitly describe state as ephemeral and best-effort in the Worker runtime, with durable storage deferred to a future improvement.
+- The normal PR gate (`ruff`, format check, `mypy`, and `pytest`) passes, as does the Worker-runtime smoke test.
+
+**PR gate:** `uv run ruff check .`, `uv run ruff format --check .`, `uv run mypy src`, `uv run pytest`, and the documented `pywrangler dev` smoke test all pass.
+
+---
+
 ## Notes for Whoever Executes These Tasks
 
 - Tasks 03/05/10 (the three abstract base classes) and TASK-01/02 have no dependency on each other and can be done in parallel/in any order once TASK-01 is complete.
 - Tasks 11–15 (the five command processors) all depend on the same two things (TASK-10 and TASK-09) and can similarly be done in any order relative to each other.
 - Resist the urge to combine small tasks into a single PR "for efficiency" — the point of this breakdown is small, easily-reviewable increments, each independently green on lint/type-check/tests.
+- TASK-18 is intentionally one end-to-end task: the Worker entry point, async outbound I/O, deployment configuration, webhook cutover, and removal of the old host are one deployable migration unit and must not leave an intermediate branch that runs on neither platform.
