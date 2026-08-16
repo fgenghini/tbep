@@ -11,5 +11,5 @@ class LLMClient(ABC):
         self.config = config
 
     @abstractmethod
-    def send(self, messages: list[dict[str, str]]) -> str:
+    async def send(self, messages: list[dict[str, str]]) -> str:
         raise NotImplementedError

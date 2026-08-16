@@ -19,5 +19,5 @@ class MessageProcessor(ABC):
         self.llm_client = llm_client_factory.create()
 
     @abstractmethod
-    def process(self, user_id: int, content: str) -> dict[str, str | None]:
+    async def process(self, user_id: int, content: str) -> dict[str, str | None]:
         raise NotImplementedError

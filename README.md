@@ -1,16 +1,41 @@
 # TBEP
 
-Telegram Bot for English Practice.
+Telegram Bot for English Practice, deployed as a Python Cloudflare Worker.
 
-## Local Setup
+## Local development
 
-Install dependencies:
+Requires `uv >= 0.12.3` and Node.js (Wrangler's local CLI prerequisite).
 
 ```sh
 uv sync
+cp .dev.vars.example .dev.vars
+# edit .dev.vars with local credentials
+uv run pywrangler dev
 ```
 
-Run the local checks:
+The Worker accepts Telegram updates at `/<WEBHOOK_SECRET_PATH>`, dispatches
+commands or plain text, and calls Telegram asynchronously. It does not bind a
+port or register a webhook during startup.
+
+## Configuration and deployment
+
+`TELEGRAM_BOT_TOKEN`, `WEBHOOK_SECRET_PATH`, and the selected provider's API
+key are required. `LLM_PROVIDER` defaults to `chatgpt`; `OPENROUTER_MODEL` is
+optional. Bindings are read from the Worker environment.
+
+```sh
+uv run pywrangler secret put TELEGRAM_BOT_TOKEN
+uv run pywrangler secret put WEBHOOK_SECRET_PATH
+uv run pywrangler secret put OPENAI_API_KEY
+uv run pywrangler deploy
+uv run pywrangler tail
+```
+
+Deploy the new Worker first without changing the old webhook. Then call
+Telegram `setWebhook` with the deployed Worker URL plus the secret path and
+verify it with `getWebhookInfo`. Retire the old deployment only after that
+verification, so both runtimes never process updates simultaneously. Roll
+back with `uv run pywrangler rollback` if needed.
 
 ```sh
 uv run ruff check .
@@ -19,50 +44,6 @@ uv run mypy src
 uv run pytest
 ```
 
-Run the bot:
-
-```sh
-uv run python -m src.main
-```
-
-The bot uses Telegram webhooks, so local runs need a public HTTPS URL that can
-forward Telegram requests to your machine.
-
-## Configuration
-
-Set these environment variables before running the bot:
-
-| Variable | Required | Description |
-| --- | --- | --- |
-| `TELEGRAM_BOT_TOKEN` | Yes | Bot token from BotFather. |
-| `LLM_PROVIDER` | No | LLM provider. Defaults to `chatgpt`; set to `openrouter` to use OpenRouter. |
-| `OPENAI_API_KEY` | For `chatgpt` | API key used by the ChatGPT client. |
-| `OPENROUTER_API_KEY` | For `openrouter` | API key used by the OpenRouter client. |
-| `OPENROUTER_MODEL` | No | OpenRouter model name. Defaults to `google/gemma-4-31b-it:free`. |
-| `WEBHOOK_SECRET_PATH` | Yes | Secret URL path Telegram will call for webhook updates. |
-| `WEBHOOK_BASE_URL` | Yes | Public HTTPS base URL for the deployed app. The bot registers `WEBHOOK_BASE_URL/WEBHOOK_SECRET_PATH` with Telegram. |
-| `PORT` | No | HTTP port for the webhook server. Defaults to `8000`; Railway provides this automatically. |
-
-## Railway Deployment
-
-1. Create or link a Railway project for this repository.
-2. Configure the project to deploy from the branch you want to run.
-3. Add the required environment variables in Railway:
-   `TELEGRAM_BOT_TOKEN`, `WEBHOOK_SECRET_PATH`, `WEBHOOK_BASE_URL`, and the
-   API key for your selected `LLM_PROVIDER`.
-4. Set `WEBHOOK_BASE_URL` to the public Railway app URL, for example
-   `https://your-service.up.railway.app`.
-5. Deploy the service. Railway supplies `PORT`; do not set it manually unless
-   you have a specific reason.
-6. Confirm startup succeeds in the Railway logs. On startup, the bot calls
-   Telegram through `Application.run_webhook(...)` and registers the webhook URL.
-
-The `Procfile` starts the application with:
-
-```sh
-web: uv run python -m src.main
-```
-
-Railway's free tier may sleep when idle. Because TBEP v1 stores user state only
-in process memory, sleeping, restarts, or redeploys clear conversation history
-and reset in-memory persona/topic state.
+State is in memory per warm Worker isolate. Isolate replacement can reset
+persona, topic, and conversation history; state is not guaranteed across
+isolates. No database, KV, or Durable Object is introduced here.

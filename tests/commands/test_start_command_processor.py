@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -10,51 +10,53 @@ from src.commands.start_command_processor import (
 from src.state.user_state_store_memory import UserStateStoreMemory
 
 
-def test_process_applies_defaults_for_brand_new_user() -> None:
+def test_process_applies_defaults_for_brand_new_user(run_async) -> None:
     store = UserStateStoreMemory()
     factory_mock = MagicMock()
     llm_mock = MagicMock()
     factory_mock.create.return_value = llm_mock
-    llm_mock.send.return_value = "How's your day going?"
+    llm_mock.send = AsyncMock(return_value="How's your day going?")
 
     processor = StartCommandProcessor(store, factory_mock)
 
-    processor.process(1, "")
+    run_async(processor.process(1, ""))
 
     state = store.get(1)
     assert state.persona == DEFAULT_PERSONA
     assert state.topic == DEFAULT_TOPIC
 
 
-def test_process_does_not_override_existing_persona_or_topic() -> None:
+def test_process_does_not_override_existing_persona_or_topic(run_async) -> None:
     store = UserStateStoreMemory()
     store.set_persona(1, "a pirate")
     store.set_topic(1, "sailing")
     factory_mock = MagicMock()
     llm_mock = MagicMock()
     factory_mock.create.return_value = llm_mock
-    llm_mock.send.return_value = "Ahoy!"
+    llm_mock.send = AsyncMock(return_value="Ahoy!")
 
     processor = StartCommandProcessor(store, factory_mock)
 
-    processor.process(1, "")
+    run_async(processor.process(1, ""))
 
     state = store.get(1)
     assert state.persona == "a pirate"
     assert state.topic == "sailing"
 
 
-def test_process_resets_history_and_returns_opening_message_with_help() -> None:
+def test_process_resets_history_and_returns_opening_message_with_help(
+    run_async,
+) -> None:
     store = UserStateStoreMemory()
     store.append_turn(1, "user", "old message")
     factory_mock = MagicMock()
     llm_mock = MagicMock()
     factory_mock.create.return_value = llm_mock
-    llm_mock.send.return_value = "How's your day going?"
+    llm_mock.send = AsyncMock(return_value="How's your day going?")
 
     processor = StartCommandProcessor(store, factory_mock)
 
-    result = processor.process(1, "")
+    result = run_async(processor.process(1, ""))
 
     assert "/help" in result
     assert "How's your day going?" in result
@@ -65,17 +67,18 @@ def test_process_resets_history_and_returns_opening_message_with_help() -> None:
 
 def test_process_returns_fallback_and_logs_on_error(
     caplog: pytest.LogCaptureFixture,
+    run_async,
 ) -> None:
     store = UserStateStoreMemory()
     factory_mock = MagicMock()
     llm_mock = MagicMock()
     factory_mock.create.return_value = llm_mock
-    llm_mock.send.side_effect = Exception("API error")
+    llm_mock.send = AsyncMock(side_effect=Exception("API error"))
 
     processor = StartCommandProcessor(store, factory_mock)
 
     with caplog.at_level("ERROR"):
-        result = processor.process(1, "")
+        result = run_async(processor.process(1, ""))
 
     assert result == "An error occurred. Try again in a moment.\n\nAPI error"
     assert (

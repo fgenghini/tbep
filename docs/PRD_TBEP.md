@@ -107,6 +107,10 @@
 
 ## 7. Future Considerations (Out of Scope for v1)
 
+The Worker keeps state in memory per warm isolate. Isolate replacement may reset
+persona, topic, and conversation history, and state is not guaranteed to follow
+a user across isolates. Durable storage is deferred to a future release.
+
 - Voice chat support (speech-to-text input, text-to-speech output in persona voice).
 - Progress tracking / recurring error pattern summaries over time.
 - Difficulty levels (e.g., simplify persona vocabulary for beginners).
