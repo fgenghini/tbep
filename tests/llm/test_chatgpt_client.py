@@ -1,4 +1,5 @@
-from unittest.mock import MagicMock, patch
+import asyncio
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import openai
 import pytest
@@ -34,7 +35,7 @@ def test_parse_response_empty() -> None:
     assert client._parse_response(mock_response) == ""
 
 
-@patch("src.llm.chatgpt_client.openai.OpenAI")
+@patch("src.llm.chatgpt_client.openai.AsyncOpenAI")
 def test_send_success(mock_openai_class: MagicMock) -> None:
     mock_openai_instance = MagicMock()
     mock_openai_class.return_value = mock_openai_instance
@@ -44,10 +45,10 @@ def test_send_success(mock_openai_class: MagicMock) -> None:
     mock_choice.message.content = "success response"
     mock_response.choices = [mock_choice]
 
-    mock_openai_instance.chat.completions.create.return_value = mock_response
+    mock_openai_instance.chat.completions.create = AsyncMock(return_value=mock_response)
 
     client = ChatGPTClient(api_key="fake-key", model="test-model")
-    result = client.send([{"role": "user", "content": "hi"}])
+    result = asyncio.run(client.send([{"role": "user", "content": "hi"}]))
 
     assert result == "success response"
     mock_openai_instance.chat.completions.create.assert_called_once_with(
@@ -56,16 +57,16 @@ def test_send_success(mock_openai_class: MagicMock) -> None:
     )
 
 
-@patch("src.llm.chatgpt_client.openai.OpenAI")
+@patch("src.llm.chatgpt_client.openai.AsyncOpenAI")
 def test_send_error(mock_openai_class: MagicMock) -> None:
     mock_openai_instance = MagicMock()
     mock_openai_class.return_value = mock_openai_instance
 
-    mock_openai_instance.chat.completions.create.side_effect = openai.APIError(
-        "api error", request=MagicMock(), body=None
+    mock_openai_instance.chat.completions.create = AsyncMock(
+        side_effect=openai.APIError("api error", request=MagicMock(), body=None)
     )
 
     client = ChatGPTClient(api_key="fake-key")
 
     with pytest.raises(ChatGPTClientError, match="OpenAI API Error:"):
-        client.send([{"role": "user", "content": "hi"}])
+        asyncio.run(client.send([{"role": "user", "content": "hi"}]))

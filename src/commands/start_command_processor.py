@@ -20,7 +20,7 @@ class StartCommandProcessor(CommandProcessor):
         super().__init__(user_state_store)
         self.llm_client = llm_client_factory.create()
 
-    def process(self, user_id: int, args: str) -> str:
+    async def process(self, user_id: int, args: str) -> str:
         self._apply_defaults(user_id)
         self.user_state_store.reset_history(user_id)
         state = self.user_state_store.get(user_id)
@@ -36,7 +36,7 @@ class StartCommandProcessor(CommandProcessor):
         ]
 
         try:
-            opening_msg = self.llm_client.send(messages)
+            opening_msg = await self.llm_client.send(messages)
             self.user_state_store.append_turn(user_id, "assistant", opening_msg)
             return f"{HELP_MENTION}\n\n{opening_msg}"
         except Exception as error:

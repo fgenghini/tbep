@@ -1,4 +1,5 @@
-from unittest.mock import MagicMock
+import asyncio
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -15,11 +16,11 @@ def test_process_returns_both_reply_and_correction() -> None:
     llm_mock = MagicMock()
     factory_mock.create.return_value = llm_mock
     # 1st call: persona reply. 2nd call: correction.
-    llm_mock.send.side_effect = ["Ahoy!", "You should say 'hello' instead."]
+    llm_mock.send = AsyncMock(side_effect=["Ahoy!", "You should say 'hello' instead."])
 
     processor = TextMessageProcessor(store, factory_mock)
 
-    result = processor.process(1, "hi")
+    result = asyncio.run(processor.process(1, "hi"))
 
     assert result["persona_reply"] == "Ahoy!"
     assert result["correction"] == "You should say 'hello' instead."
@@ -35,11 +36,11 @@ def test_process_returns_none_correction() -> None:
     factory_mock = MagicMock()
     llm_mock = MagicMock()
     factory_mock.create.return_value = llm_mock
-    llm_mock.send.side_effect = ["Hello there.", "NO_CORRECTION"]
+    llm_mock.send = AsyncMock(side_effect=["Hello there.", "NO_CORRECTION"])
 
     processor = TextMessageProcessor(store, factory_mock)
 
-    result = processor.process(1, "Hello")
+    result = asyncio.run(processor.process(1, "Hello"))
 
     assert result["persona_reply"] == "Hello there."
     assert result["correction"] is None
@@ -52,15 +53,16 @@ def test_process_returns_fallback_on_error(
     factory_mock = MagicMock()
     llm_mock = MagicMock()
     factory_mock.create.return_value = llm_mock
-    llm_mock.send.side_effect = Exception("API failed")
+    llm_mock.send = AsyncMock(side_effect=Exception("API failed"))
 
     processor = TextMessageProcessor(store, factory_mock)
 
     with caplog.at_level("ERROR"):
-        result = processor.process(1, "Hello")
+        result = asyncio.run(processor.process(1, "Hello"))
 
     assert (
-        result["persona_reply"] == "An error occurred. Try again in a moment.\n\nAPI failed"
+        result["persona_reply"]
+        == "An error occurred. Try again in a moment.\n\nAPI failed"
     )
     assert result["correction"] is None
     assert "Failed to process text message for user_id=1" in caplog.text

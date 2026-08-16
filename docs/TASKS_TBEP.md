@@ -413,7 +413,7 @@ TASK-17 → TASK-18 (Migrate runtime from Railway to Cloudflare Workers)
 
 **Depends on:** TASK-17.
 
-**Status:** [ ] Not started
+**Status:** [x] Complete
 
 **Goal:** Run the same Telegram bot service as a Python Cloudflare Worker, preserving its externally visible behavior while replacing Railway-specific process hosting with the Cloudflare Workers request model and tooling.
 

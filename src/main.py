@@ -1,17 +1,26 @@
 from __future__ import annotations
 
+import inspect
+import json
 import logging
+from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any
 
-from telegram import Update
-from telegram.ext import (
-    Application,
-    ApplicationBuilder,
-    CommandHandler,
-    MessageHandler,
-    filters,
-)
+import httpx
+
+try:
+    from workers import Response, WorkerEntrypoint
+except ModuleNotFoundError:  # Desktop CPython test fallback; Workers supplies these.
+
+    class Response:  # type: ignore[no-redef]
+        def __init__(self, body: str, status: int = 200) -> None:
+            self.body = body
+            self.status = status
+
+    class WorkerEntrypoint:  # type: ignore[no-redef]
+        env: Any
+
 
 from src.commands.command_processor import CommandProcessor
 from src.commands.help_command_processor import HelpCommandProcessor
@@ -20,7 +29,7 @@ from src.commands.reset_command_processor import ResetCommandProcessor
 from src.commands.start_command_processor import StartCommandProcessor
 from src.commands.stats_command_processor import StatsCommandProcessor
 from src.commands.topic_command_processor import TopicCommandProcessor
-from src.config import AppConfig, ConfigError, load_config
+from src.config import AppConfig, load_config
 from src.llm.llm_client_factory import LLMClientFactory
 from src.messages.message_processor import MessageProcessor
 from src.messages.text_message_processor import TextMessageProcessor
@@ -34,182 +43,142 @@ EMPTY_PERSONA_REPLY_FALLBACK = (
 
 @dataclass(frozen=True)
 class BotComponents:
-    start: StartCommandProcessor
-    profile: ProfileCommandProcessor
-    topic: TopicCommandProcessor
-    help: HelpCommandProcessor
-    reset: ResetCommandProcessor
-    stats: StatsCommandProcessor
+    commands: dict[str, CommandProcessor]
     text: TextMessageProcessor
 
 
-def main() -> None:
-    config = load_config()
-    if config.webhook_url is None:
-        raise ConfigError("Missing required environment variable: WEBHOOK_BASE_URL")
-
-    application = build_application(config)
-    run_webhook(application, config)
-
-
-def build_application(
-    config: AppConfig,
-) -> Application[Any, Any, Any, Any, Any, Any]:
-    components = build_bot_components(config)
-    application = ApplicationBuilder().token(config.telegram_bot_token).build()
-    register_handlers(application, components)
-    application.add_error_handler(handle_error)
-    return application
-
-
 def build_bot_components(config: AppConfig) -> BotComponents:
-    user_state_store = UserStateStoreMemory()
-    llm_client_factory = LLMClientFactory(
+    store = UserStateStoreMemory()
+    factory = LLMClientFactory(
         provider=config.llm_provider,
         openai_api_key=config.openai_api_key,
         openrouter_api_key=config.openrouter_api_key,
+        model=config.openrouter_model,
     )
-
     return BotComponents(
-        start=StartCommandProcessor(user_state_store, llm_client_factory),
-        profile=ProfileCommandProcessor(user_state_store),
-        topic=TopicCommandProcessor(user_state_store),
-        help=HelpCommandProcessor(user_state_store),
-        reset=ResetCommandProcessor(user_state_store),
-        stats=StatsCommandProcessor(user_state_store),
-        text=TextMessageProcessor(user_state_store, llm_client_factory),
-    )
-
-
-def register_handlers(
-    application: Application[Any, Any, Any, Any, Any, Any],
-    components: BotComponents,
-) -> None:
-    application.add_handler(
-        CommandHandler(
-            "start",
-            lambda update, context: handle_command(update, components.start, ""),
-        )
-    )
-    application.add_handler(
-        CommandHandler(
-            "profile",
-            lambda update, context: handle_command(
-                update, components.profile, _join_context_args(context)
-            ),
-        )
-    )
-    application.add_handler(
-        CommandHandler(
-            "topic",
-            lambda update, context: handle_command(
-                update, components.topic, _join_context_args(context)
-            ),
-        )
-    )
-    application.add_handler(
-        CommandHandler(
-            "help",
-            lambda update, context: handle_command(update, components.help, ""),
-        )
-    )
-    application.add_handler(
-        CommandHandler(
-            "reset",
-            lambda update, context: handle_command(update, components.reset, ""),
-        )
-    )
-    application.add_handler(
-        CommandHandler(
-            "stats",
-            lambda update, context: handle_command(update, components.stats, ""),
-        )
-    )
-    application.add_handler(
-        MessageHandler(
-            filters.TEXT & ~filters.COMMAND,
-            lambda update, context: handle_message(update, components.text),
-        )
+        commands={
+            "start": StartCommandProcessor(store, factory),
+            "profile": ProfileCommandProcessor(store),
+            "topic": TopicCommandProcessor(store),
+            "help": HelpCommandProcessor(store),
+            "reset": ResetCommandProcessor(store),
+            "stats": StatsCommandProcessor(store),
+        },
+        text=TextMessageProcessor(store, factory),
     )
 
 
 async def handle_command(
-    update: Update,
-    processor: CommandProcessor,
-    args: str,
-) -> None:
-    message = update.message
-    user_id = _get_user_id(update)
-    if message is None or user_id is None:
-        return
-
-    response = processor.process(user_id, args)
-    await message.reply_text(response)
+    update: Mapping[str, Any], processor: CommandProcessor, args: str
+) -> list[str]:
+    user_id = _user_id(update)
+    if user_id is None:
+        return []
+    result = processor.process(user_id, args)
+    return [await result if inspect.isawaitable(result) else result]
 
 
 async def handle_message(
-    update: Update,
-    processor: MessageProcessor,
-) -> None:
-    message = update.message
-    user_id = _get_user_id(update)
-    if message is None or user_id is None or message.text is None:
-        return
-
-    result = processor.process(user_id, message.text)
-    persona_reply = result["persona_reply"]
+    update: Mapping[str, Any], processor: MessageProcessor
+) -> list[str]:
+    message = update.get("message")
+    user_id = _user_id(update)
+    text = message.get("text") if isinstance(message, dict) else None
+    if user_id is None or not isinstance(text, str) or not text:
+        return []
+    result = await processor.process(user_id, text)
+    persona_reply = result.get("persona_reply")
     if not isinstance(persona_reply, str):
-        return
-    if not persona_reply.strip():
-        persona_reply = EMPTY_PERSONA_REPLY_FALLBACK
-
-    await message.reply_text(persona_reply)
+        return []
+    replies = [persona_reply.strip() or EMPTY_PERSONA_REPLY_FALLBACK]
     correction = result.get("correction")
     if isinstance(correction, str) and correction:
-        await message.reply_text(correction)
+        replies.append(correction)
+    return replies
 
 
-async def handle_error(update: object, context: Any) -> None:
-    error = getattr(context, "error", None)
-    if error is None:
-        logger.error("Unhandled exception while processing update")
-        return
-
-    logger.error(
-        "Unhandled exception while processing update: %s",
-        error,
-        exc_info=(type(error), error, error.__traceback__),
-    )
+def _user_id(update: Mapping[str, Any]) -> int | None:
+    message = update.get("message")
+    user = message.get("from") if isinstance(message, dict) else None
+    value = user.get("id") if isinstance(user, dict) else None
+    return value if isinstance(value, int) and not isinstance(value, bool) else None
 
 
-def _join_context_args(context: Any) -> str:
-    args = getattr(context, "args", [])
-    if not args:
-        return ""
-    return " ".join(args).strip()
+class Default(WorkerEntrypoint):
+    """Telegram webhook adapter; state is intentionally per warm isolate."""
+
+    components: BotComponents | None = None
+
+    async def fetch(self, request: Any) -> Response:
+        config = load_config(_environment(self.env))
+        path = "/" + config.webhook_secret_path.strip("/")
+        if request.url.split("?", 1)[0].rstrip("/").endswith(path) is False:
+            return Response("Not found", status=404)
+        if request.method != "POST":
+            return Response("Method not allowed", status=405)
+        try:
+            update = json.loads(await request.text())
+        except (TypeError, ValueError):
+            return Response("Invalid JSON", status=400)
+        if not isinstance(update, dict):
+            return Response("Invalid update", status=400)
+
+        if self.components is None:
+            self.components = build_bot_components(config)
+        replies = await self._dispatch(update)
+        try:
+            for reply in replies:
+                await self._send_telegram(config.telegram_bot_token, update, reply)
+        except (httpx.HTTPError, ValueError, KeyError) as error:
+            logger.exception("Telegram API request failed")
+            return Response(f"Telegram API error: {error}", status=502)
+        return Response("ok", status=200)
+
+    async def _dispatch(self, update: dict[str, Any]) -> list[str]:
+        if self.components is None:
+            return []
+        message = update.get("message")
+        text = message.get("text") if isinstance(message, dict) else None
+        if not isinstance(text, str) or not text:
+            return []
+        if text.startswith("/"):
+            command, _, args = text[1:].partition(" ")
+            command = command.split("@", 1)[0].lower()
+            processor = self.components.commands.get(command)
+            if processor:
+                return await handle_command(update, processor, args.strip())
+            return []
+        return await handle_message(update, self.components.text)
+
+    async def _send_telegram(
+        self, token: str, update: dict[str, Any], text: str
+    ) -> None:
+        message = update.get("message", {})
+        chat = message.get("chat", {}) if isinstance(message, dict) else {}
+        chat_id = chat.get("id") if isinstance(chat, dict) else None
+        if not isinstance(chat_id, (int, str)):
+            raise ValueError("Telegram update has no chat id")
+        async with httpx.AsyncClient(timeout=30) as client:
+            response = await client.post(
+                f"https://api.telegram.org/bot{token}/sendMessage",
+                json={"chat_id": chat_id, "text": text},
+            )
+            response.raise_for_status()
+            body = response.json()
+            if not body.get("ok"):
+                raise ValueError("Telegram rejected sendMessage")
 
 
-def _get_user_id(update: Update) -> int | None:
-    user = update.effective_user
-    if user is None:
-        return None
-    return user.id
-
-
-def run_webhook(
-    application: Application[Any, Any, Any, Any, Any, Any],
-    config: AppConfig,
-) -> None:
-    if config.webhook_url is None:
-        raise ConfigError("Missing required environment variable: WEBHOOK_BASE_URL")
-
-    application.run_webhook(
-        listen="0.0.0.0",
-        port=config.port,
-        url_path=config.webhook_secret_path,
-        webhook_url=config.webhook_url,
-    )
-
-
-if __name__ == "__main__":
-    main()
+def _environment(env: Any) -> Mapping[str, str]:
+    return {
+        name: str(getattr(env, name))
+        for name in (
+            "TELEGRAM_BOT_TOKEN",
+            "LLM_PROVIDER",
+            "OPENAI_API_KEY",
+            "OPENROUTER_API_KEY",
+            "OPENROUTER_MODEL",
+            "WEBHOOK_SECRET_PATH",
+        )
+        if getattr(env, name, None) is not None
+    }

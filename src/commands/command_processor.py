@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from collections.abc import Awaitable
 
 from src.state.user_state_store import UserStateStore
 
@@ -8,5 +9,5 @@ class CommandProcessor(ABC):
         self.user_state_store = user_state_store
 
     @abstractmethod
-    def process(self, user_id: int, args: str) -> str:
+    def process(self, user_id: int, args: str) -> str | Awaitable[str]:
         raise NotImplementedError

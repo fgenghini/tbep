@@ -1,0 +1,6 @@
+TELEGRAM_BOT_TOKEN=replace-me
+WEBHOOK_SECRET_PATH=replace-with-a-long-random-path
+LLM_PROVIDER=chatgpt
+OPENAI_API_KEY=replace-me
+# OPENROUTER_API_KEY=replace-me
+# OPENROUTER_MODEL=google/gemma-4-31b-it:free

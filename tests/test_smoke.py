@@ -2,4 +2,4 @@ import src.main
 
 
 def test_main_imports() -> None:
-    assert callable(src.main.main)
+    assert hasattr(src.main, "Default")

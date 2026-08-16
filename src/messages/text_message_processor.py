@@ -8,12 +8,12 @@ logger = logging.getLogger(__name__)
 
 
 class TextMessageProcessor(MessageProcessor):
-    def process(self, user_id: int, content: str) -> dict[str, str | None]:
+    async def process(self, user_id: int, content: str) -> dict[str, str | None]:
         state = self.user_state_store.get(user_id)
 
         try:
-            persona_reply = self._generate_persona_reply(state, content)
-            correction = self._generate_correction(content)
+            persona_reply = await self._generate_persona_reply(state, content)
+            correction = await self._generate_correction(content)
             self._update_history(user_id, content, persona_reply)
             return {
                 "persona_reply": persona_reply,
@@ -35,12 +35,12 @@ class TextMessageProcessor(MessageProcessor):
         messages.extend(state.history)  # type: ignore[arg-type]
         return messages
 
-    def _generate_persona_reply(self, state: UserState, content: str) -> str:
+    async def _generate_persona_reply(self, state: UserState, content: str) -> str:
         messages = self._build_persona_prompt(state)
         messages.append({"role": "user", "content": content})
-        return self.llm_client.send(messages)
+        return await self.llm_client.send(messages)
 
-    def _generate_correction(self, content: str) -> str | None:
+    async def _generate_correction(self, content: str) -> str | None:
         sys_msg = (
             "You are an English teacher. Review the user's message for grammar "
             "or unnatural phrasing. If it is perfect or mostly fine, respond "
@@ -51,7 +51,7 @@ class TextMessageProcessor(MessageProcessor):
             {"role": "system", "content": sys_msg},
             {"role": "user", "content": content},
         ]
-        correction = self.llm_client.send(messages).strip()
+        correction = (await self.llm_client.send(messages)).strip()
         if correction == "NO_CORRECTION" or not correction:
             return None
         return correction
