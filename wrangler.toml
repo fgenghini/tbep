@@ -1,7 +1,0 @@
-name = "tbep"
-main = "src/main.py"
-compatibility_date = "2026-08-15"
-compatibility_flags = ["python_workers"]
-
-[python_modules]
-excludes = ["**/*.pyc", "**/__pycache__/**"]
