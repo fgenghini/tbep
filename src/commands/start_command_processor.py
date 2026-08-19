@@ -1,9 +1,9 @@
 import logging
 
-from src.commands.command_processor import CommandProcessor
-from src.error_messages import format_fallback_message
-from src.messages.message_processor import LLMClientFactoryProtocol
-from src.state.user_state_store import UserStateStore
+from commands.command_processor import CommandProcessor
+from error_messages import format_fallback_message
+from messages.message_processor import LLMClientFactoryProtocol
+from state.user_state_store import UserStateStore
 
 DEFAULT_PERSONA = "a casual American person"
 DEFAULT_TOPIC = "casual daily conversation"

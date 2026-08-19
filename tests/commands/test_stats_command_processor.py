@@ -1,7 +1,7 @@
 from unittest.mock import MagicMock
 
-from src.commands.stats_command_processor import StatsCommandProcessor
-from src.state.user_state_store import UserState, UserStateStore
+from commands.stats_command_processor import StatsCommandProcessor
+from state.user_state_store import UserState, UserStateStore
 
 
 def test_process_returns_persona_topic_and_message_count() -> None:

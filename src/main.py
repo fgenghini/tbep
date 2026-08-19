@@ -22,18 +22,18 @@ except ModuleNotFoundError:  # Desktop CPython test fallback; Workers supplies t
         env: Any
 
 
-from src.commands.command_processor import CommandProcessor
-from src.commands.help_command_processor import HelpCommandProcessor
-from src.commands.profile_command_processor import ProfileCommandProcessor
-from src.commands.reset_command_processor import ResetCommandProcessor
-from src.commands.start_command_processor import StartCommandProcessor
-from src.commands.stats_command_processor import StatsCommandProcessor
-from src.commands.topic_command_processor import TopicCommandProcessor
-from src.config import AppConfig, load_config
-from src.llm.llm_client_factory import LLMClientFactory
-from src.messages.message_processor import MessageProcessor
-from src.messages.text_message_processor import TextMessageProcessor
-from src.state.user_state_store_memory import UserStateStoreMemory
+from commands.command_processor import CommandProcessor
+from commands.help_command_processor import HelpCommandProcessor
+from commands.profile_command_processor import ProfileCommandProcessor
+from commands.reset_command_processor import ResetCommandProcessor
+from commands.start_command_processor import StartCommandProcessor
+from commands.stats_command_processor import StatsCommandProcessor
+from commands.topic_command_processor import TopicCommandProcessor
+from config import AppConfig, load_config
+from llm.llm_client_factory import LLMClientFactory
+from messages.message_processor import MessageProcessor
+from messages.text_message_processor import TextMessageProcessor
+from state.user_state_store_memory import UserStateStoreMemory
 
 logger = logging.getLogger(__name__)
 EMPTY_PERSONA_REPLY_FALLBACK = (

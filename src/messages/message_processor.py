@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Protocol
 
-from src.llm.llm_client import LLMClient
-from src.state.user_state_store import UserStateStore
+from llm.llm_client import LLMClient
+from state.user_state_store import UserStateStore
 
 
 class LLMClientFactoryProtocol(Protocol):

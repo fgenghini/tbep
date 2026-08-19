@@ -1,5 +1,5 @@
-from src.state.user_state_store import UserState
-from src.state.user_state_store_memory import UserStateStoreMemory
+from state.user_state_store import UserState
+from state.user_state_store_memory import UserStateStoreMemory
 
 
 def test_get_new_user_returns_default() -> None:

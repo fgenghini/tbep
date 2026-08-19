@@ -3,8 +3,8 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from src.messages.text_message_processor import TextMessageProcessor
-from src.state.user_state_store_memory import UserStateStoreMemory
+from messages.text_message_processor import TextMessageProcessor
+from state.user_state_store_memory import UserStateStoreMemory
 
 
 def test_process_returns_both_reply_and_correction() -> None:

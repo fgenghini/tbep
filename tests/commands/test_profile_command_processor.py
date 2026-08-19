@@ -1,10 +1,10 @@
 from unittest.mock import MagicMock
 
-from src.commands.profile_command_processor import (
+from commands.profile_command_processor import (
     PROFILE_UPDATED_MESSAGE,
     ProfileCommandProcessor,
 )
-from src.state.user_state_store_memory import UserStateStoreMemory
+from state.user_state_store_memory import UserStateStoreMemory
 
 
 def test_process_only_sets_persona() -> None:

@@ -1,7 +1,7 @@
 from unittest.mock import MagicMock
 
-from src.commands.help_command_processor import HELP_TEXT, HelpCommandProcessor
-from src.state.user_state_store import UserStateStore
+from commands.help_command_processor import HELP_TEXT, HelpCommandProcessor
+from state.user_state_store import UserStateStore
 
 
 def test_process_returns_help_text() -> None:

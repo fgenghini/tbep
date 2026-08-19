@@ -2,8 +2,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from src.commands.command_processor import CommandProcessor
-from src.state.user_state_store import UserStateStore
+from commands.command_processor import CommandProcessor
+from state.user_state_store import UserStateStore
 
 
 def test_cannot_instantiate_command_processor_directly() -> None:

@@ -1,4 +1,4 @@
-from src.commands.command_processor import CommandProcessor
+from commands.command_processor import CommandProcessor
 
 HELP_TEXT = """Welcome to TBEP! Here are the available commands:
 /start - Start a new conversation; defaults apply only to unset profile/topic

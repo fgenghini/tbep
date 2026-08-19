@@ -1,6 +1,6 @@
 import pytest
 
-from src.state.user_state_store import UserState, UserStateStore
+from state.user_state_store import UserState, UserStateStore
 
 
 def test_user_state_store_cannot_be_instantiated_directly() -> None:

@@ -1,4 +1,4 @@
-from src.state.user_state_store import UserState, UserStateStore
+from state.user_state_store import UserState, UserStateStore
 
 
 class UserStateStoreMemory(UserStateStore):

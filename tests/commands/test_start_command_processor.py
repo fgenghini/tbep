@@ -2,12 +2,12 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from src.commands.start_command_processor import (
+from commands.start_command_processor import (
     DEFAULT_PERSONA,
     DEFAULT_TOPIC,
     StartCommandProcessor,
 )
-from src.state.user_state_store_memory import UserStateStoreMemory
+from state.user_state_store_memory import UserStateStoreMemory
 
 
 def test_process_applies_defaults_for_brand_new_user(run_async) -> None:

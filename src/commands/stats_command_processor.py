@@ -1,4 +1,4 @@
-from src.commands.command_processor import CommandProcessor
+from commands.command_processor import CommandProcessor
 
 
 class StatsCommandProcessor(CommandProcessor):

@@ -2,8 +2,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from src.messages.message_processor import MessageProcessor
-from src.state.user_state_store import UserStateStore
+from messages.message_processor import MessageProcessor
+from state.user_state_store import UserStateStore
 
 
 def test_cannot_instantiate_message_processor_directly() -> None:
