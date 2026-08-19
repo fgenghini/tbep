@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import openai
 import pytest
 
-from src.llm.chatgpt_client import ChatGPTClient, ChatGPTClientError
+from llm.chatgpt_client import ChatGPTClient, ChatGPTClientError
 
 
 def test_build_request_payload() -> None:
@@ -35,7 +35,7 @@ def test_parse_response_empty() -> None:
     assert client._parse_response(mock_response) == ""
 
 
-@patch("src.llm.chatgpt_client.openai.AsyncOpenAI")
+@patch("llm.chatgpt_client.openai.AsyncOpenAI")
 def test_send_success(mock_openai_class: MagicMock) -> None:
     mock_openai_instance = MagicMock()
     mock_openai_class.return_value = mock_openai_instance
@@ -57,7 +57,7 @@ def test_send_success(mock_openai_class: MagicMock) -> None:
     )
 
 
-@patch("src.llm.chatgpt_client.openai.AsyncOpenAI")
+@patch("llm.chatgpt_client.openai.AsyncOpenAI")
 def test_send_error(mock_openai_class: MagicMock) -> None:
     mock_openai_instance = MagicMock()
     mock_openai_class.return_value = mock_openai_instance

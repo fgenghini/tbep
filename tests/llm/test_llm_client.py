@@ -1,6 +1,6 @@
 import pytest
 
-from src.llm.llm_client import LLMClient
+from llm.llm_client import LLMClient
 
 
 def test_cannot_instantiate_llm_client_directly() -> None:

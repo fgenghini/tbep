@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from src.llm.openrouter_client import (
+from llm.openrouter_client import (
     DEFAULT_OPENROUTER_MODEL,
     OpenRouterClient,
     OpenRouterClientError,
@@ -38,7 +38,7 @@ def test_send_uses_async_http() -> None:
     fake_http.post = AsyncMock(return_value=response)
 
     async def run() -> str:
-        client_module = __import__("src.llm.openrouter_client", fromlist=["httpx"])
+        client_module = __import__("llm.openrouter_client", fromlist=["httpx"])
         original = client_module.httpx.AsyncClient
         client_module.httpx.AsyncClient = MagicMock(return_value=fake_http)
         try:

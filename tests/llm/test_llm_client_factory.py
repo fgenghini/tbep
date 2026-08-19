@@ -1,13 +1,13 @@
 import pytest
 
-from src.llm.chatgpt_client import ChatGPTClient
-from src.llm.llm_client_factory import (
+from llm.chatgpt_client import ChatGPTClient
+from llm.llm_client_factory import (
     CHATGPT_PROVIDER,
     OPENROUTER_PROVIDER,
     PROVIDER_ENV_VAR,
     LLMClientFactory,
 )
-from src.llm.openrouter_client import OpenRouterClient
+from llm.openrouter_client import OpenRouterClient
 
 
 def test_create_defaults_to_chatgpt(monkeypatch: pytest.MonkeyPatch) -> None:

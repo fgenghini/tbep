@@ -5,7 +5,7 @@ from typing import Any
 
 import httpx
 
-from src.llm.llm_client import LLMClient
+from llm.llm_client import LLMClient
 
 OPENROUTER_CHAT_COMPLETIONS_URL = "https://openrouter.ai/api/v1/chat/completions"
 OPENROUTER_MODEL = "OPENROUTER_MODEL"

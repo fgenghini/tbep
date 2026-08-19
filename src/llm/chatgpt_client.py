@@ -5,7 +5,7 @@ from typing import Any
 import openai
 from openai.types.chat import ChatCompletion
 
-from src.llm.llm_client import LLMClient
+from llm.llm_client import LLMClient
 
 
 class ChatGPTClientError(Exception):

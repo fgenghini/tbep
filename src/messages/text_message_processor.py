@@ -1,8 +1,8 @@
 import logging
 
-from src.error_messages import format_fallback_message
-from src.messages.message_processor import MessageProcessor
-from src.state.user_state_store import UserState
+from error_messages import format_fallback_message
+from messages.message_processor import MessageProcessor
+from state.user_state_store import UserState
 
 logger = logging.getLogger(__name__)
 

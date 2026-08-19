@@ -1,5 +1,5 @@
-import src.main
+import main
 
 
 def test_main_imports() -> None:
-    assert hasattr(src.main, "Default")
+    assert hasattr(main, "Default")

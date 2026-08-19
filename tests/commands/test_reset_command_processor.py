@@ -1,5 +1,5 @@
-from src.commands.reset_command_processor import RESET_MESSAGE, ResetCommandProcessor
-from src.state.user_state_store_memory import UserStateStoreMemory
+from commands.reset_command_processor import RESET_MESSAGE, ResetCommandProcessor
+from state.user_state_store_memory import UserStateStoreMemory
 
 
 def test_process_only_resets_history() -> None:

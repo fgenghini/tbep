@@ -304,6 +304,8 @@ Each handler function is a thin adapter: it extracts `user_id`/`args`/`content` 
 ## 8. Webhook & Deployment (Cloudflare Workers)
 
 - Cloudflare invokes `WorkerEntrypoint.fetch` for each HTTPS request; there is no long-lived server or bound port.
+- Python Workers packages `src/` as the module root. Runtime imports therefore use
+  `commands`, `llm`, `messages`, and `state` directly rather than an `src.` prefix.
 - After `uv run pywrangler deploy`, explicitly call Telegram `setWebhook` with the deployed Worker URL and secret path, then verify with `getWebhookInfo`.
 - A secret path/token in the webhook URL is used to prevent unauthorized requests from reaching the handler (basic security measure, since the endpoint is public).
 - **Free tier considerations:**

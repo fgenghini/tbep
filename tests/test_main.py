@@ -2,7 +2,7 @@ import asyncio
 import json
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from src.main import EMPTY_PERSONA_REPLY_FALLBACK, Default, handle_message
+from main import EMPTY_PERSONA_REPLY_FALLBACK, Default, handle_message
 
 
 def update(text: str = "hello") -> dict:
@@ -60,7 +60,7 @@ def test_worker_rejects_wrong_method_and_path() -> None:
     assert asyncio.run(instance.fetch(bad)).status == 404
 
 
-@patch("src.main.Default._send_telegram", new_callable=AsyncMock)
+@patch("main.Default._send_telegram", new_callable=AsyncMock)
 def test_worker_dispatches_plain_text(mock_send: AsyncMock) -> None:
     instance = worker()
     instance.components = MagicMock()

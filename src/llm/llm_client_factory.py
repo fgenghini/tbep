@@ -1,9 +1,9 @@
 import os
 from typing import Any
 
-from src.llm.chatgpt_client import ChatGPTClient
-from src.llm.llm_client import LLMClient
-from src.llm.openrouter_client import OpenRouterClient
+from llm.chatgpt_client import ChatGPTClient
+from llm.llm_client import LLMClient
+from llm.openrouter_client import OpenRouterClient
 
 CHATGPT_PROVIDER = "chatgpt"
 DEFAULT_PROVIDER = CHATGPT_PROVIDER

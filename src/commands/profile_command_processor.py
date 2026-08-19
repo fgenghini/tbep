@@ -1,4 +1,4 @@
-from src.commands.command_processor import CommandProcessor
+from commands.command_processor import CommandProcessor
 
 PROFILE_UPDATED_MESSAGE = "Profile updated. Use /start to start a new conversation."
 

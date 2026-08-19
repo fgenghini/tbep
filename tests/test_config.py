@@ -1,6 +1,6 @@
 import pytest
 
-from src.config import AppConfig, ConfigError, load_config
+from config import AppConfig, ConfigError, load_config
 
 
 def test_load_config_reads_worker_bindings() -> None:

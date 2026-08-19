@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from collections.abc import Awaitable
 
-from src.state.user_state_store import UserStateStore
+from state.user_state_store import UserStateStore
 
 
 class CommandProcessor(ABC):

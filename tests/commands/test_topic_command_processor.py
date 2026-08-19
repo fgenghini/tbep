@@ -1,10 +1,10 @@
 from unittest.mock import MagicMock
 
-from src.commands.topic_command_processor import (
+from commands.topic_command_processor import (
     TOPIC_UPDATED_MESSAGE,
     TopicCommandProcessor,
 )
-from src.state.user_state_store_memory import UserStateStoreMemory
+from state.user_state_store_memory import UserStateStoreMemory
 
 
 def test_process_only_sets_topic() -> None:
