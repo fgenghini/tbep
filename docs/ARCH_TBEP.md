@@ -283,7 +283,9 @@ class UserStateStoreMemory(UserStateStore):
 - **`ruff`** handles both linting and formatting, configured via a `[tool.ruff]` section in `pyproject.toml`. Run via `uv run ruff check .` (lint) and `uv run ruff format .` (format).
 - **`mypy`** performs static type checking, configured via a `[tool.mypy]` section in `pyproject.toml`. Run via `uv run mypy src`. Type hints should be used throughout `src/` (function signatures, class attributes) to get meaningful coverage from `mypy`.
 - **`pytest`** is the test runner, configured via a `[tool.pytest.ini_options]` section in `pyproject.toml` (e.g., `testpaths = ["tests"]`). Run via `uv run pytest`.
-- All four tools are expected to be run locally during development and are natural candidates for CI checks later (CI pipeline specifics are out of scope for this document — see Section 11).
+- **Command smoke check:** `uv run python scripts/smoke_commands.py` exercises the webhook handler and command state transitions with fixed model replies and captured Telegram messages.
+- **Worker runtime smoke check:** `uv run python scripts/smoke_worker.py` starts `pywrangler dev --local`, sends safe HTTP requests, and verifies routing and input handling in the Cloudflare runtime. Both smoke checks use dummy configuration and make no Telegram or model API calls.
+- Run the four development tools and both smoke checks locally before handing off changes. They are natural candidates for CI checks later (CI pipeline specifics are out of scope for this document — see Section 11).
 
 ---
 
@@ -343,6 +345,10 @@ Unit tests are in scope for this project. The `tests/` folder mirrors the `src/`
 - `UserStateStore` (`UserStateStoreMemory`) — get/set persona, get/set topic, history reset, and turn appending behave correctly per user.
 
 `pytest` is the test runner (see Section 6), configured via `pyproject.toml`. Specific fixtures, coverage thresholds, and CI integration are left as implementation details beyond this document.
+
+Run both smoke checks from Section 6 after the unit suite. The command check
+validates bot behavior in desktop Python; the Worker check catches runtime
+compatibility errors. Neither check evaluates generated model text.
 
 ---
 

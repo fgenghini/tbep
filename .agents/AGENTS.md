@@ -18,6 +18,8 @@ These instructions apply to every new task in this repository.
    uv run ruff format --check .
    uv run mypy src
    uv run pytest
+   uv run python scripts/smoke_commands.py
+   uv run python scripts/smoke_worker.py
    ```
 
 5. Commit the completed work with a clear message, push the branch, and open a

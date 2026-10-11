@@ -4,7 +4,8 @@ Telegram Bot for English Practice, deployed as a Python Cloudflare Worker.
 
 ## Local development
 
-Requires `uv >= 0.12.3` and Node.js (Wrangler's local CLI prerequisite).
+Requires `uv >= 0.12.3` and Node.js 24 (`.node-version`), which Wrangler uses
+for local development.
 
 ```sh
 uv sync
@@ -97,17 +98,23 @@ uv run ruff check .
 uv run ruff format --check .
 uv run mypy src
 uv run pytest
+uv run python scripts/smoke_commands.py
+uv run python scripts/smoke_worker.py
 ```
 
-### Deterministic command smoke test
+### Smoke checks
 
-Run `uv run python scripts/smoke_commands.py` to send sample Telegram updates
-through the Worker's `fetch` handler. It checks `/help`, `/profile`, `/topic`,
-`/start`, `/reset`, and `/stats`, including state changes and `/start` defaults.
-The script uses fixed responses in place of the model and captures Telegram
-replies in memory. It needs no credentials, makes no network requests, and uses
-no model tokens. It does not check model wording or exercise the Cloudflare
-runtime; use `uv run pywrangler dev` separately for runtime compatibility.
+`smoke_commands.py` sends sample Telegram updates through the Worker's `fetch`
+handler in desktop Python. It checks `/help`, `/profile`, `/topic`, `/start`,
+`/reset`, and `/stats`, including state changes and `/start` defaults. The script
+uses fixed model responses and captures Telegram replies in memory.
+
+`smoke_worker.py` starts `uv run pywrangler dev --local` on an available
+localhost port, sends safe HTTP requests, checks routing and input handling,
+and stops the Worker. This confirms that the code starts and handles requests
+in the Cloudflare runtime. Both scripts use dummy configuration and make no
+Telegram or model API calls, so they need no credentials or model tokens. They
+do not judge model-generated text.
 
 State is in memory per warm Worker isolate. Isolate replacement can reset
 persona, topic, and conversation history; state is not guaranteed across
