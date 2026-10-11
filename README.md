@@ -99,6 +99,16 @@ uv run mypy src
 uv run pytest
 ```
 
+### Deterministic command smoke test
+
+Run `uv run python scripts/smoke_commands.py` to send sample Telegram updates
+through the Worker's `fetch` handler. It checks `/help`, `/profile`, `/topic`,
+`/start`, `/reset`, and `/stats`, including state changes and `/start` defaults.
+The script uses fixed responses in place of the model and captures Telegram
+replies in memory. It needs no credentials, makes no network requests, and uses
+no model tokens. It does not check model wording or exercise the Cloudflare
+runtime; use `uv run pywrangler dev` separately for runtime compatibility.
+
 State is in memory per warm Worker isolate. Isolate replacement can reset
 persona, topic, and conversation history; state is not guaranteed across
 isolates. No database, KV, or Durable Object is introduced here.
