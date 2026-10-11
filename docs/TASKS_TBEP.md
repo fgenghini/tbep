@@ -48,6 +48,11 @@ TASK-10 + TASK-09 → TASK-15 (StartCommandProcessor)
 TASK-11 + TASK-12 + TASK-13 + TASK-14 + TASK-15 + TASK-02 → TASK-16 (main.py wiring + webhook)
 TASK-16 → TASK-17 (Railway deployment config)
 TASK-17 → TASK-18 (Migrate runtime from Railway to Cloudflare Workers)
+TASK-18 → TASK-19 (Shared brief conversation prompt)
+TASK-19 → TASK-20 (/style command)
+TASK-20 → TASK-21 (Feedback controls)
+TASK-21 → TASK-22 (Say it another way button)
+TASK-22 → TASK-23 (Progress recap)
 ```
 
 ---
@@ -444,6 +449,88 @@ TASK-17 → TASK-18 (Migrate runtime from Railway to Cloudflare Workers)
 - The normal PR gate (`ruff`, format check, `mypy`, and `pytest`) passes, as does the Worker-runtime smoke test.
 
 **PR gate:** `uv run ruff check .`, `uv run ruff format --check .`, `uv run mypy src`, `uv run pytest`, and the documented `pywrangler dev` smoke test all pass.
+
+---
+
+## Current Tasks (in priority order)
+
+Implement each task below in its own branch and PR. The dependencies preserve the agreed order; they do not require bundling features into one release.
+
+### TASK-19: Shared Brief Conversation Prompt
+
+**Depends on:** TASK-18.
+
+**Status:** [ ] To do
+
+**Goal:** Make short, conversational replies the default without asking users to repeat length instructions in `/profile`.
+
+**Scope:** Define one shared conversation style instruction for both `/start` openings and normal persona replies. Aim for one or two short sentences, a direct response to the learner, and at most one relevant follow-up question. Avoid lists, lectures, and unnecessary repetition; allow more detail when the learner asks for it. Keep persona, topic, and correction prompts separate.
+
+**Acceptance:** Both prompt paths use the same default style guidance, and tests verify it is included without changing persona or topic behavior.
+
+---
+
+### TASK-20: `/style` Command
+
+**Depends on:** TASK-19.
+
+**Status:** [ ] To do
+
+**Goal:** Let each learner choose reply length independently of persona.
+
+**Scope:** Add `/style brief|balanced|detailed`, defaulting to `brief`. Apply the selected style to openings and normal persona replies; changing style must not clear history or alter persona/topic. Show the current choice and valid options when the command has no or invalid arguments. Update `/help` and `/stats`. Store the setting in the existing user state, with the same best-effort lifetime as other settings until durable storage is added.
+
+**Acceptance:** Tests cover each style, the default, command validation, and keeping other settings/history intact.
+
+---
+
+### TASK-21: Feedback Controls
+
+**Depends on:** TASK-20.
+
+**Status:** [ ] To do
+
+**Goal:** Let learners control how often they receive correction messages.
+
+**Scope:** Add `/feedback off|important|all`. `off` skips correction generation; `important` reports errors that materially affect grammar or meaning; `all` preserves the current correction behavior. Default to `all` so existing users keep their current feedback level. Keep corrections separate from persona replies and never let this setting change the persona's voice. Update `/help` and `/stats`.
+
+**Acceptance:** Tests verify the selected mode, no correction call in `off`, selective feedback in `important`, and unchanged conversation history and persona replies.
+
+---
+
+### TASK-22: Say It Another Way Button
+
+**Depends on:** TASK-21.
+
+**Status:** [ ] To do
+
+**Goal:** Offer a natural alternative to the learner's latest sentence on demand.
+
+**Scope:** Attach a Telegram inline button to the persona reply. Handle its callback by generating one concise alternative phrasing of that learner message, delivered as feedback outside the persona voice. Do not treat a button tap as a new conversation turn or duplicate an automatic correction. Handle missing or stale message context clearly.
+
+**Acceptance:** Tests cover button rendering, callback routing, alternative wording, and missing/stale context.
+
+---
+
+### TASK-23: Progress Recap
+
+**Depends on:** TASK-22.
+
+**Status:** [ ] To do
+
+**Goal:** Help learners see recurring mistakes and improvements from their practice.
+
+**Scope:** Add an on-demand `/progress` recap using correction data from the current conversation. Keep it short and actionable: recurring patterns, one or two examples, and a suggested practice focus. Say plainly when there is too little data. Record only the information needed for the recap, and disclose that it can reset with the current in-memory Worker state. Update `/help`.
+
+**Acceptance:** Tests cover useful recaps, too-little-data responses, and reset behavior without exposing another user's practice data.
+
+---
+
+## Later Backlog (not current tasks)
+
+- **Scenario cards:** Offer one-tap conversation setups such as a job interview, café, or travel problem, each with a clear practice goal. Plan the Telegram interaction and any required scenario state when this is prioritized.
+- **Voice practice:** Accept spoken learner messages and optionally return spoken persona replies while keeping text corrections available. Choose transcription and speech providers when this is prioritized.
+- **Persistent preferences and history:** Replace best-effort in-memory state with durable per-user storage so persona, topic, style, feedback preferences, history, and progress survive Worker restarts. Define retention and deletion behavior before implementation.
 
 ---
 
