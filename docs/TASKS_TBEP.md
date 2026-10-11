@@ -11,6 +11,8 @@ This document breaks down the implementation of TBEP (per `ARCH_TBEP.md`) into s
   2. `uv run ruff format --check .` passes with no formatting issues (or `uv run ruff format .` has been run and changes committed).
   3. `uv run mypy src` passes with no errors.
   4. `uv run pytest` passes with all tests green.
+  5. `uv run python scripts/smoke_commands.py` passes with no external API calls.
+  6. `uv run python scripts/smoke_worker.py` passes in the local Cloudflare Worker runtime.
 - If any of the above fail, fix the issue before opening the PR — do not open a PR with failing checks.
 - Each task should be its own branch and its own PR (small, reviewable increments) — do not bundle multiple tasks into one PR.
 - **Tracking progress:** this file lives at `docs/TASKS_TBEP.md` in the repo, alongside `docs/PRD_TBEP.md` and `docs/ARCH_TBEP.md`. Each task below has a `Status` line. When a PR for a task is opened, update that task's `Status` to `Done` as part of the same PR (i.e., the PR that implements the task also includes the edit to this file marking it done), so `docs/TASKS_TBEP.md` always reflects what's actually been shipped/in review versus what's left.
@@ -433,7 +435,7 @@ TASK-17 → TASK-18 (Migrate runtime from Railway to Cloudflare Workers)
 - Update existing LLM, processor, and handler tests for async interfaces without weakening their behavioral assertions.
 - Add Worker-entry-point tests for the secret path, HTTP method checks, malformed/irrelevant Telegram updates, every registered command, plain text, the two-message persona/correction response, Telegram API failures, and success/error HTTP responses.
 - Mock all external Telegram and LLM calls in the automated suite; no test may use live credentials or make a real network request.
-- Run a local smoke test through `uv run pywrangler dev` that posts representative Telegram update payloads and confirms the Worker reaches the mocked/stubbed outbound boundary.
+- Run `uv run python scripts/smoke_commands.py` to check command behavior with deterministic model and Telegram fakes, and `uv run python scripts/smoke_worker.py` to start `pywrangler dev --local` and check safe HTTP requests in the Worker runtime.
 - After deploying to a non-production Worker, verify `/start`, `/profile`, `/topic`, `/help`, `/reset`, `/stats`, plain conversation, corrections, both LLM providers, and expected state reset after an isolate restart before cutting the production webhook over.
 
 **Acceptance criteria:**
@@ -443,7 +445,7 @@ TASK-17 → TASK-18 (Migrate runtime from Railway to Cloudflare Workers)
 - The PRD and architecture explicitly describe state as ephemeral and best-effort in the Worker runtime, with durable storage deferred to a future improvement.
 - The normal PR gate (`ruff`, format check, `mypy`, and `pytest`) passes, as does the Worker-runtime smoke test.
 
-**PR gate:** `uv run ruff check .`, `uv run ruff format --check .`, `uv run mypy src`, `uv run pytest`, and the documented `pywrangler dev` smoke test all pass.
+**PR gate:** `uv run ruff check .`, `uv run ruff format --check .`, `uv run mypy src`, `uv run pytest`, `uv run python scripts/smoke_commands.py`, and `uv run python scripts/smoke_worker.py` all pass.
 
 ---
 
