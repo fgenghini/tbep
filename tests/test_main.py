@@ -39,7 +39,7 @@ def test_message_sends_persona_and_correction_separately() -> None:
         return_value={"persona_reply": "Nice.", "correction": "I have coffee."}
     )
     result = asyncio.run(handle_message(update("I has coffee"), processor))
-    assert result == ["Nice.", "I have coffee."]
+    assert [reply.text for reply in result] == ["Nice.", "I have coffee."]
 
 
 def test_empty_persona_reply_uses_fallback() -> None:
@@ -47,9 +47,9 @@ def test_empty_persona_reply_uses_fallback() -> None:
     processor.process = AsyncMock(
         return_value={"persona_reply": "  ", "correction": None}
     )
-    assert asyncio.run(handle_message(update(), processor)) == [
-        EMPTY_PERSONA_REPLY_FALLBACK
-    ]
+    assert [
+        reply.text for reply in asyncio.run(handle_message(update(), processor))
+    ] == [EMPTY_PERSONA_REPLY_FALLBACK]
 
 
 def test_worker_rejects_wrong_method_and_path() -> None:

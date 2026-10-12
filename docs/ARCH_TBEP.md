@@ -400,3 +400,30 @@ Unit tests cover command validation, defaults and user isolation, retained
 preferences across `/start` and `/reset`, Worker routing, correction call counts,
 prompt separation, sentinel handling, and history. Deterministic smoke checks
 exercise `/feedback` and `/stats`; all external calls stay mocked.
+
+## On-demand Rephrasing (TASK-22)
+
+`UserState.latest_sentence` holds one ephemeral `SentenceContext` with a random
+sentence token, the original learner text, and the originating chat ID.
+`TextMessageProcessor` replaces this context before awaiting the LLM, so newer
+text invalidates older buttons even when processing fails. Successful nonempty
+replies expose a `rephrase_token` only if their context is still current.
+`reset_history()` also clears this context, covering `/reset` and `/start`.
+
+The Telegram adapter returns `TelegramReply` objects containing text and optional
+inline keyboard markup. It binds successful sentence context to the chat and
+puts only the short opaque token in `callback_data`, never the learner text.
+Persona replies carry the button; openings, corrections, and fallbacks do not.
+
+Callback updates use the tapping user's ID and the callback message's chat ID.
+The Worker calls `answerCallbackQuery` before generating feedback, then delegates
+to `RephraseProcessor`, which validates token and chat against that user's state.
+Its isolated teacher prompt uses only the stored learner sentence. It rechecks
+context after the model returns to suppress results invalidated during generation.
+It neither writes history nor invokes correction generation. Missing/stale context
+returns an expiration message; empty output and LLM errors use the normal fallback.
+Telegram API failures return HTTP 502 through the existing error path.
+
+Integration tests mock external HTTP/model calls and cover button payloads,
+callback acknowledgement ordering, feedback-off behavior, isolation, reset/restart,
+malformed callbacks, errors, and concurrent invalidation.

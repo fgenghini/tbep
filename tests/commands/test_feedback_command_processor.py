@@ -66,7 +66,8 @@ def test_feedback_mode_keeps_persona_prompt_and_history(mode: str) -> None:
     factory = MagicMock()
     factory.create.return_value = llm
     result = asyncio.run(TextMessageProcessor(store, factory).process(1, "Hello"))
-    assert result == {"persona_reply": "Welcome aboard!", "correction": None}
+    assert result["persona_reply"] == "Welcome aboard!"
+    assert result["correction"] is None
     assert llm.send.await_count == (1 if mode == "off" else 2)
     persona_prompt = llm.send.call_args_list[0].args[0][0]["content"]
     assert "You are a pirate. We are talking about ships." in persona_prompt
@@ -138,7 +139,7 @@ def test_worker_routes_feedback_without_llm() -> None:
         )
     )
     assert len(replies) == 1
-    assert "off" in replies[0]
+    assert "off" in replies[0].text
     assert instance.components.text.user_state_store.get(1).feedback == "off"
     instance.components.text.llm_client.send.assert_not_awaited()
     assert "/feedback off|important|all" in instance.components.commands[

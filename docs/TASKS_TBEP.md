@@ -504,7 +504,7 @@ Implement each task below in its own branch or worktree, with a separate PR. The
 
 **Depends on:** TASK-21.
 
-**Status:** [ ] To do
+**Status:** [x] Done
 
 **Goal:** Offer a natural alternative to the learner's latest sentence on demand.
 

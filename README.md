@@ -136,3 +136,16 @@ Use `/feedback off|important|all` to choose correction frequency (`all` by defau
 current mode and `/stats` includes it. Preferences survive `/start` and `/reset`
 but can reset when the Worker isolate changes. Feedback stays separate from the
 persona conversation.
+
+### Alternative phrasing
+
+Tap **Say it another way** under the latest successful conversation reply to
+receive one natural alternative to your sentence, labeled **Another way:**.
+This uses a separate teacher voice, works even with `/feedback off`, and does
+not add a conversation turn or repeat automatic corrections. Only your latest
+sentence is eligible: a new sentence, `/reset`, `/start`, or loss of Worker
+state expires older buttons. Openings and error replies have no button.
+
+If you configured Telegram's `allowed_updates` explicitly, include both
+`message` and `callback_query` when registering the webhook so button taps
+reach the Worker.

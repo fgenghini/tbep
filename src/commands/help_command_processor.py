@@ -13,6 +13,9 @@ HELP_TEXT = """Welcome to TBEP! Here are the available commands:
 
 Whenever you type a message, I will reply in character and provide English
 corrections according to your feedback setting, in a separate teacher voice.
+Tap “Say it another way” on the latest reply for one alternative phrasing,
+even with feedback off. Older buttons expire when you send a new sentence,
+use /reset or /start, or Worker state resets.
 Preferences can reset on Worker restart."""
 
 
