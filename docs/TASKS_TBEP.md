@@ -476,7 +476,7 @@ Implement each task below in its own branch or worktree, with a separate PR. The
 
 **Depends on:** TASK-19.
 
-**Status:** [ ] To do
+**Status:** [x] Done
 
 **Goal:** Let each learner choose reply length independently of persona.
 
