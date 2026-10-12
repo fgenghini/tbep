@@ -7,5 +7,6 @@ class StatsCommandProcessor(CommandProcessor):
         return (
             f"Persona: {state.persona}\n"
             f"Topic: {state.topic}\n"
+            f"Feedback: {state.feedback}\n"
             f"Messages stored: {len(state.history)}"
         )

@@ -64,6 +64,7 @@
 | `/start` | Onboards new users with a short greeting that mentions the `/help` command for details on how the bot works. Applies the default persona ("casual American person") and default topic ("casual daily conversation"), and immediately starts the conversation with an in-character opening message, so the bot is usable without any configuration. |
 | `/profile <description>` | Sets or replaces the persona without changing conversation history or starting a conversation. |
 | `/topic <description>` | Sets or replaces the topic without changing conversation history or starting a conversation. |
+| `/feedback off\|important\|all` | Choose correction frequency; default `all`. Missing/invalid arguments show the current choice and options. |
 | `/help` | Explains available commands and how corrections work. |
 | `/reset` | Clears conversation history without changing profile/topic or starting a conversation. |
 
@@ -133,3 +134,19 @@ a user across isolates. Durable storage is deferred to a future release.
 | Correction format — separate message or combined with persona reply? | Separate Telegram messages — persona reply and correction are sent independently. |
 | Fallback message on LLM error/timeout? | Fixed text: "An error occurred. Try again in a moment." |
 | Should onboarding explain full bot usage inline? | No — greeting just mentions that `/help` is available for details. |
+
+## Feedback Controls (TASK-21)
+
+Learners choose `/feedback off`, `/feedback important`, or `/feedback all`.
+The default is `all`, preserving existing grammar/naturalness feedback. `off`
+skips correction generation entirely. `important` reports only errors that
+materially affect grammar or meaning (for example, wrong tense, agreement, or
+wording that changes the meaning), ignoring minor stylistic improvements and
+acceptable informal phrasing. The model judges importance; this is prompt-based
+selection rather than a deterministic grammar classifier.
+
+Feedback uses a plain teacher voice in a separate Telegram message and never
+changes the persona reply or enters conversation history. Changing the setting
+preserves persona, topic, reply style, and history. `/start` and `/reset` retain
+it. `/help` explains the modes and `/stats` displays the current choice. Like
+other preferences, it is per-user, ephemeral, and best-effort per Worker isolate.

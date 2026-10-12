@@ -76,18 +76,37 @@ async def main() -> None:
         patch.object(Default, "_send_telegram", capture_send),
     ):
         await check("/help", HELP_TEXT)
+        await check(
+            "/feedback off", "Feedback updated to off. Applies to your next message."
+        )
+        await check(
+            "/feedback important",
+            "Feedback updated to important. Applies to your next message.",
+        )
+        await check(
+            "/feedback all", "Feedback updated to all. Applies to your next message."
+        )
         await check("/profile a pirate", PROFILE_UPDATED_MESSAGE)
         await check("/topic sailing", TOPIC_UPDATED_MESSAGE)
-        await check("/stats", "Persona: a pirate\nTopic: sailing\nMessages stored: 0")
+        await check(
+            "/stats",
+            "Persona: a pirate\nTopic: sailing\nFeedback: all\nMessages stored: 0",
+        )
         await check("/start", f"You can use /help for details.\n\n{OPENING}")
-        await check("/stats", "Persona: a pirate\nTopic: sailing\nMessages stored: 1")
+        await check(
+            "/stats",
+            "Persona: a pirate\nTopic: sailing\nFeedback: all\nMessages stored: 1",
+        )
         await check("/reset", RESET_MESSAGE)
-        await check("/stats", "Persona: a pirate\nTopic: sailing\nMessages stored: 0")
+        await check(
+            "/stats",
+            "Persona: a pirate\nTopic: sailing\nFeedback: all\nMessages stored: 0",
+        )
         await check("/start", f"You can use /help for details.\n\n{OPENING}", 456)
         await check(
             "/stats",
             "Persona: a casual American person\n"
-            "Topic: casual daily conversation\nMessages stored: 1",
+            "Topic: casual daily conversation\nFeedback: all\nMessages stored: 1",
             456,
         )
 

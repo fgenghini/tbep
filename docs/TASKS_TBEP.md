@@ -490,7 +490,7 @@ Implement each task below in its own branch or worktree, with a separate PR. The
 
 **Depends on:** TASK-20.
 
-**Status:** [ ] To do
+**Status:** [x] Done
 
 **Goal:** Let learners control how often they receive correction messages.
 

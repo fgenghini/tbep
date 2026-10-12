@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import TypedDict
+from typing import Literal, TypedDict
+
+FeedbackMode = Literal["off", "important", "all"]
 
 
 class HistoryEntry(TypedDict):
@@ -15,6 +17,7 @@ class UserState:
     persona: str = ""
     topic: str = ""
     history: list[HistoryEntry] = field(default_factory=list)
+    feedback: FeedbackMode = "all"
 
 
 class UserStateStore(ABC):
@@ -28,6 +31,10 @@ class UserStateStore(ABC):
 
     @abstractmethod
     def set_topic(self, user_id: int, topic: str) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def set_feedback(self, user_id: int, feedback: FeedbackMode) -> None:
         raise NotImplementedError
 
     @abstractmethod

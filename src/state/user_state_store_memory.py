@@ -1,4 +1,4 @@
-from state.user_state_store import UserState, UserStateStore
+from state.user_state_store import FeedbackMode, UserState, UserStateStore
 
 
 class UserStateStoreMemory(UserStateStore):
@@ -17,6 +17,9 @@ class UserStateStoreMemory(UserStateStore):
     def set_topic(self, user_id: int, topic: str) -> None:
         state = self.get(user_id)
         state.topic = topic
+
+    def set_feedback(self, user_id: int, feedback: FeedbackMode) -> None:
+        self.get(user_id).feedback = feedback
 
     def reset_history(self, user_id: int) -> None:
         state = self.get(user_id)

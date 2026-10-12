@@ -23,6 +23,7 @@ except ModuleNotFoundError:  # Desktop CPython test fallback; Workers supplies t
 
 
 from commands.command_processor import CommandProcessor
+from commands.feedback_command_processor import FeedbackCommandProcessor
 from commands.help_command_processor import HelpCommandProcessor
 from commands.profile_command_processor import ProfileCommandProcessor
 from commands.reset_command_processor import ResetCommandProcessor
@@ -63,6 +64,7 @@ def build_bot_components(config: AppConfig) -> BotComponents:
             "help": HelpCommandProcessor(store),
             "reset": ResetCommandProcessor(store),
             "stats": StatsCommandProcessor(store),
+            "feedback": FeedbackCommandProcessor(store),
         },
         text=TextMessageProcessor(store, factory),
     )
