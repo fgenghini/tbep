@@ -12,7 +12,7 @@ This document breaks down the implementation of TBEP (per `ARCH_TBEP.md`) into s
   3. `uv run mypy src` passes with no errors.
   4. `uv run pytest` passes with all tests green.
 - If any of the above fail, fix the issue before opening the PR — do not open a PR with failing checks.
-- Each task should be its own branch and its own PR (small, reviewable increments) — do not bundle multiple tasks into one PR.
+- Each task should use its own branch or worktree and have its own PR (small, reviewable increments) — do not bundle multiple tasks into one PR.
 - **Tracking progress:** this file lives at `docs/TASKS_TBEP.md` in the repo, alongside `docs/PRD_TBEP.md` and `docs/ARCH_TBEP.md`. Each task below has a `Status` line. When a PR for a task is opened, update that task's `Status` to `Done` as part of the same PR (i.e., the PR that implements the task also includes the edit to this file marking it done), so `docs/TASKS_TBEP.md` always reflects what's actually been shipped/in review versus what's left.
 
 ---
@@ -454,7 +454,7 @@ TASK-22 → TASK-23 (Progress recap)
 
 ## Current Tasks (in priority order)
 
-Implement each task below in its own branch and PR. The dependencies preserve the agreed order; they do not require bundling features into one release.
+Implement each task below in its own branch or worktree, with a separate PR. The dependencies preserve the agreed order; they do not require bundling features into one release.
 
 ### TASK-19: Shared Brief Conversation Prompt
 
