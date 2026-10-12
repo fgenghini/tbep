@@ -377,3 +377,26 @@ compatibility errors. Neither check evaluates generated model text.
 - Detailed prompt engineering / system prompt content for persona and correction generation.
 - CI/CD pipeline specifics.
 - Monitoring/observability tooling beyond basic logging.
+
+## Feedback Controls (TASK-21)
+
+`UserState.feedback` is a `FeedbackMode` literal (`off`, `important`, `all`),
+defaulting to `all`. `UserStateStore.set_feedback` and the memory implementation
+update only this preference. It survives history resets in the same isolate.
+`FeedbackCommandProcessor` validates a trimmed, case-insensitive single choice;
+missing or invalid arguments display the current mode and accepted options.
+The Worker registers `/feedback` with the same shared store as other commands.
+
+`TextMessageProcessor` builds the same persona prompt regardless of feedback.
+In `off` mode it makes only the persona LLM call. In `all` mode the correction
+prompt is unchanged. In `important` mode a separate teacher prompt limits feedback
+to material grammar/meaning errors and ignores minor stylistic improvements.
+Both correction prompts return `NO_CORRECTION` when appropriate; that sentinel
+or an empty response suppresses the correction message. Existing LLM failure
+handling is retained. History contains only learner messages and persona replies.
+No additional storage, API calls, or Telegram message formats are introduced.
+
+Unit tests cover command validation, defaults and user isolation, retained
+preferences across `/start` and `/reset`, Worker routing, correction call counts,
+prompt separation, sentinel handling, and history. Deterministic smoke checks
+exercise `/feedback` and `/stats`; all external calls stay mocked.

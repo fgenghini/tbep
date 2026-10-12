@@ -19,7 +19,10 @@ def test_process_returns_persona_topic_and_message_count() -> None:
 
     result = processor.process(1, "")
 
-    assert result == "Persona: a pirate\nTopic: ships\nStyle: brief\nMessages stored: 3"
+    assert (
+        result == "Persona: a pirate\nTopic: ships\nStyle: brief\n"
+        "Feedback: all\nMessages stored: 3"
+    )
     store_mock.get.assert_called_once_with(1)
 
 
@@ -34,4 +37,6 @@ def test_process_ignores_args() -> None:
 
     result = processor.process(123, "unexpected args")
 
-    assert result == "Persona: \nTopic: \nStyle: brief\nMessages stored: 0"
+    assert (
+        result == "Persona: \nTopic: \nStyle: brief\nFeedback: all\nMessages stored: 0"
+    )

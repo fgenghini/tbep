@@ -4,6 +4,8 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Literal, TypedDict
 
+FeedbackMode = Literal["off", "important", "all"]
+
 ReplyStyle = Literal["brief", "balanced", "detailed"]
 
 
@@ -18,6 +20,7 @@ class UserState:
     topic: str = ""
     history: list[HistoryEntry] = field(default_factory=list)
     style: ReplyStyle = "brief"
+    feedback: FeedbackMode = "all"
 
 
 class UserStateStore(ABC):
@@ -35,6 +38,10 @@ class UserStateStore(ABC):
 
     @abstractmethod
     def set_style(self, user_id: int, style: ReplyStyle) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def set_feedback(self, user_id: int, feedback: FeedbackMode) -> None:
         raise NotImplementedError
 
     @abstractmethod

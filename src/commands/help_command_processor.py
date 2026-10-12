@@ -6,12 +6,14 @@ HELP_TEXT = """Welcome to TBEP! Here are the available commands:
 /topic <topic> - Set the topic for the next conversation
 /style brief|balanced|detailed - Choose reply length (default: brief)
        Use /style without arguments to see your current choice
-/reset - Clear history but keep the persona, topic, and style; use /start to start again
-/stats - Show the current persona, topic, style, and stored message count
+/reset - Clear history but keep preferences; use /start to start again
+/feedback off|important|all - Corrections: off, important errors, or all (default)
+/stats - Show persona, topic, style, feedback, and stored message count
 /help - Show this help message
 
 Whenever you type a message, I will reply in character and provide English
-corrections if needed!"""
+corrections according to your feedback setting, in a separate teacher voice.
+Preferences can reset on Worker restart."""
 
 
 class HelpCommandProcessor(CommandProcessor):

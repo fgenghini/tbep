@@ -127,3 +127,12 @@ Use `/style` to see the current choice and `/stats` for all current settings.
 State is in memory per warm Worker isolate. Isolate replacement can reset
 persona, topic, style, and conversation history; state is not guaranteed across
 isolates. No database, KV, or Durable Object is introduced here.
+
+### Correction preferences
+
+Use `/feedback off|important|all` to choose correction frequency (`all` by default).
+`off` skips corrections; `important` focuses on material grammar or meaning errors;
+`all` keeps the existing grammar and naturalness feedback. `/feedback` shows your
+current mode and `/stats` includes it. Preferences survive `/start` and `/reset`
+but can reset when the Worker isolate changes. Feedback stays separate from the
+persona conversation.
