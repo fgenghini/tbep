@@ -1,4 +1,4 @@
-from state.user_state_store import UserState, UserStateStore
+from state.user_state_store import ReplyStyle, UserState, UserStateStore
 
 
 class UserStateStoreMemory(UserStateStore):
@@ -17,6 +17,9 @@ class UserStateStoreMemory(UserStateStore):
     def set_topic(self, user_id: int, topic: str) -> None:
         state = self.get(user_id)
         state.topic = topic
+
+    def set_style(self, user_id: int, style: ReplyStyle) -> None:
+        self.get(user_id).style = style
 
     def reset_history(self, user_id: int) -> None:
         state = self.get(user_id)

@@ -32,6 +32,9 @@ class ConcreteUserStateStore(UserStateStore):
     def set_topic(self, user_id: int, topic: str) -> None:
         return None
 
+    def set_style(self, user_id: int, style: str) -> None:
+        return None
+
     def reset_history(self, user_id: int) -> None:
         return None
 

@@ -78,16 +78,39 @@ async def main() -> None:
         await check("/help", HELP_TEXT)
         await check("/profile a pirate", PROFILE_UPDATED_MESSAGE)
         await check("/topic sailing", TOPIC_UPDATED_MESSAGE)
-        await check("/stats", "Persona: a pirate\nTopic: sailing\nMessages stored: 0")
+        await check(
+            "/stats",
+            "Persona: a pirate\nTopic: sailing\nStyle: brief\nMessages stored: 0",
+        )
         await check("/start", f"You can use /help for details.\n\n{OPENING}")
-        await check("/stats", "Persona: a pirate\nTopic: sailing\nMessages stored: 1")
+        await check(
+            "/stats",
+            "Persona: a pirate\nTopic: sailing\nStyle: brief\nMessages stored: 1",
+        )
+        await check(
+            "/style detailed", "Style updated to detailed. Applies to your next reply."
+        )
+        await check(
+            "/style", "Current style: detailed. Use /style brief|balanced|detailed."
+        )
+        await check(
+            "/style invalid",
+            "Current style: detailed. Use /style brief|balanced|detailed.",
+        )
+        await check(
+            "/stats",
+            "Persona: a pirate\nTopic: sailing\nStyle: detailed\nMessages stored: 1",
+        )
         await check("/reset", RESET_MESSAGE)
-        await check("/stats", "Persona: a pirate\nTopic: sailing\nMessages stored: 0")
+        await check(
+            "/stats",
+            "Persona: a pirate\nTopic: sailing\nStyle: detailed\nMessages stored: 0",
+        )
         await check("/start", f"You can use /help for details.\n\n{OPENING}", 456)
         await check(
             "/stats",
             "Persona: a casual American person\n"
-            "Topic: casual daily conversation\nMessages stored: 1",
+            "Topic: casual daily conversation\nStyle: brief\nMessages stored: 1",
             456,
         )
 

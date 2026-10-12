@@ -64,6 +64,7 @@
 | `/start` | Onboards new users with a short greeting that mentions the `/help` command for details on how the bot works. Applies the default persona ("casual American person") and default topic ("casual daily conversation"), and immediately starts the conversation with an in-character opening message, so the bot is usable without any configuration. |
 | `/profile <description>` | Sets or replaces the persona without changing conversation history or starting a conversation. |
 | `/topic <description>` | Sets or replaces the topic without changing conversation history or starting a conversation. |
+| `/style brief\|balanced\|detailed` | Choose reply length independently of persona (default: brief). No or invalid arguments show the current choice and options. Changes preserve history and other settings. |
 | `/help` | Explains available commands and how corrections work. |
 | `/reset` | Clears conversation history without changing profile/topic or starting a conversation. |
 

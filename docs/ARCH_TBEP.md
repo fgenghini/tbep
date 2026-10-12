@@ -217,6 +217,14 @@ class LLMClientFactory:
 - Defaults to returning `ChatGPTClient` when no provider is specified.
 - `TextMessageProcessor` and `StartCommandProcessor` obtain their `LLMClient` instance through this factory rather than instantiating a concrete class directly — this is the extension point for adding more providers later (e.g., Claude, Gemini) without changing calling code.
 
+Conversation style guidance is shared by `/start` openings and normal persona
+replies. `/style brief|balanced|detailed` updates only the user's style through
+`UserStateStore.set_style()`. Brief aims for one or two short sentences, balanced
+for a few sentences with useful context, and detailed for one or two short
+paragraphs. Learner requests can override these prompt guidelines. Style has
+the same per-isolate lifetime as other settings and survives `/reset` and
+`/start`. Correction prompts are independent of conversation style.
+
 ### 5.5 `UserStateStore` (abstract base class) / `UserStateStoreMemory` (implementation)
 
 Not explicitly requested at first, but needed to support the design — following the same base-class-plus-implementation pattern as `CommandProcessor`, `MessageProcessor`, and `LLMClient`.
@@ -271,7 +279,7 @@ class UserStateStoreMemory(UserStateStore):
         ...
 ```
 
-`UserState` holds: `persona: str`, `topic: str`, `history: list[dict]` (role/content pairs for LLM context).
+`UserState` holds: `persona: str`, `topic: str`, `style: ReplyStyle` (brief by default), `history: list[dict]` (role/content pairs for LLM context).
 
 **Note on persistence:** `UserStateStoreMemory` is in-memory only for v1 — data is lost on process restart/redeploy. This is an accepted tradeoff for simplicity at this stage. A persistent store (e.g., `UserStateStoreSQL`) can be introduced later as another `UserStateStore` subclass without changing calling code.
 
