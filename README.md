@@ -106,7 +106,7 @@ uv run python scripts/smoke_worker.py
 
 `smoke_commands.py` sends sample Telegram updates through the Worker's `fetch`
 handler in desktop Python. It checks `/help`, `/profile`, `/topic`, `/start`,
-`/reset`, and `/stats`, including state changes and `/start` defaults. The script
+`/reset`, `/style`, and `/stats`, including state changes and `/start` defaults. The script
 uses fixed model responses and captures Telegram replies in memory.
 
 `smoke_worker.py` starts `uv run pywrangler dev --local` on an available
@@ -116,8 +116,16 @@ in the Cloudflare runtime. Both scripts use dummy configuration and make no
 Telegram or model API calls, so they need no credentials or model tokens. They
 do not judge model-generated text.
 
+Use `/style brief|balanced|detailed` to choose reply length independently of
+persona. `brief` (the default) aims for one or two short sentences; `balanced`
+uses a few sentences with useful context; `detailed` uses one or two short
+paragraphs. These are prompt guidelines, and requests for a different level of
+detail take precedence. The choice applies to subsequent replies and `/start`
+openings, preserves history and other settings, and leaves corrections unchanged.
+Use `/style` to see the current choice and `/stats` for all current settings.
+
 State is in memory per warm Worker isolate. Isolate replacement can reset
-persona, topic, and conversation history; state is not guaranteed across
+persona, topic, style, and conversation history; state is not guaranteed across
 isolates. No database, KV, or Durable Object is introduced here.
 
 ### Correction preferences

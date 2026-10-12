@@ -29,6 +29,7 @@ from commands.profile_command_processor import ProfileCommandProcessor
 from commands.reset_command_processor import ResetCommandProcessor
 from commands.start_command_processor import StartCommandProcessor
 from commands.stats_command_processor import StatsCommandProcessor
+from commands.style_command_processor import StyleCommandProcessor
 from commands.topic_command_processor import TopicCommandProcessor
 from config import AppConfig, load_config
 from llm.llm_client_factory import LLMClientFactory
@@ -65,6 +66,7 @@ def build_bot_components(config: AppConfig) -> BotComponents:
             "reset": ResetCommandProcessor(store),
             "stats": StatsCommandProcessor(store),
             "feedback": FeedbackCommandProcessor(store),
+            "style": StyleCommandProcessor(store),
         },
         text=TextMessageProcessor(store, factory),
     )

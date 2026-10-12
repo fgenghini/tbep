@@ -6,6 +6,8 @@ from typing import Literal, TypedDict
 
 FeedbackMode = Literal["off", "important", "all"]
 
+ReplyStyle = Literal["brief", "balanced", "detailed"]
+
 
 class HistoryEntry(TypedDict):
     role: str
@@ -17,6 +19,7 @@ class UserState:
     persona: str = ""
     topic: str = ""
     history: list[HistoryEntry] = field(default_factory=list)
+    style: ReplyStyle = "brief"
     feedback: FeedbackMode = "all"
 
 
@@ -31,6 +34,10 @@ class UserStateStore(ABC):
 
     @abstractmethod
     def set_topic(self, user_id: int, topic: str) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def set_style(self, user_id: int, style: ReplyStyle) -> None:
         raise NotImplementedError
 
     @abstractmethod

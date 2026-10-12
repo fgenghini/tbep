@@ -25,6 +25,7 @@ def components():
 def test_feedback_command_changes_only_feedback(choice: str) -> None:
     bot = components()
     store = bot.text.user_state_store
+    store.set_style(1, "detailed")
     store.set_persona(1, "a pirate")
     store.set_topic(1, "ships")
     store.append_turn(1, "user", "Hello")
@@ -32,6 +33,7 @@ def test_feedback_command_changes_only_feedback(choice: str) -> None:
     state = store.get(1)
     assert state.feedback == choice.strip().lower()
     assert choice.strip().lower() in result
+    assert state.style == "detailed"
     assert state.persona == "a pirate"
     assert state.topic == "ships"
     assert state.history == [{"role": "user", "content": "Hello"}]
@@ -54,6 +56,7 @@ def test_feedback_command_invalid_args_show_current_mode(args: str) -> None:
 def test_feedback_mode_keeps_persona_prompt_and_history(mode: str) -> None:
     bot = components()
     store = bot.text.user_state_store
+    store.set_style(1, "detailed")
     store.set_persona(1, "a pirate")
     store.set_topic(1, "ships")
     store.append_turn(1, "assistant", "Ahoy!")

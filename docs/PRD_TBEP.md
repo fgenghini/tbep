@@ -65,6 +65,7 @@
 | `/profile <description>` | Sets or replaces the persona without changing conversation history or starting a conversation. |
 | `/topic <description>` | Sets or replaces the topic without changing conversation history or starting a conversation. |
 | `/feedback off\|important\|all` | Choose correction frequency; default `all`. Missing/invalid arguments show the current choice and options. |
+| `/style brief\|balanced\|detailed` | Choose reply length independently of persona (default: brief). No or invalid arguments show the current choice and options. Changes preserve history and other settings. |
 | `/help` | Explains available commands and how corrections work. |
 | `/reset` | Clears conversation history without changing profile/topic or starting a conversation. |
 
