@@ -1,6 +1,7 @@
 import logging
 
 from error_messages import format_fallback_message
+from messages.conversation_style import BRIEF_CONVERSATION_STYLE
 from messages.message_processor import MessageProcessor
 from state.user_state_store import UserState
 
@@ -29,7 +30,8 @@ class TextMessageProcessor(MessageProcessor):
     def _build_persona_prompt(self, state: UserState) -> list[dict[str, str]]:
         content = (
             f"You are {state.persona}. We are talking about {state.topic}. "
-            "Respond naturally and stay in character."
+            "Respond naturally and stay in character. "
+            f"{BRIEF_CONVERSATION_STYLE}"
         )
         messages = [{"role": "system", "content": content}]
         messages.extend(state.history)  # type: ignore[arg-type]
