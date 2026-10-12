@@ -1,9 +1,10 @@
 import logging
+from uuid import uuid4
 
 from error_messages import format_fallback_message
 from messages.conversation_style import CONVERSATION_STYLES
 from messages.message_processor import MessageProcessor
-from state.user_state_store import FeedbackMode, UserState
+from state.user_state_store import FeedbackMode, SentenceContext, UserState
 
 logger = logging.getLogger(__name__)
 
@@ -11,6 +12,8 @@ logger = logging.getLogger(__name__)
 class TextMessageProcessor(MessageProcessor):
     async def process(self, user_id: int, content: str) -> dict[str, str | None]:
         state = self.user_state_store.get(user_id)
+        context = SentenceContext(uuid4().hex, content)
+        state.latest_sentence = context
 
         try:
             persona_reply = await self._generate_persona_reply(state, content)
@@ -20,10 +23,13 @@ class TextMessageProcessor(MessageProcessor):
                 else await self._generate_correction(content, state.feedback)
             )
             self._update_history(user_id, content, persona_reply)
-            return {
+            result: dict[str, str | None] = {
                 "persona_reply": persona_reply,
                 "correction": correction,
             }
+            if persona_reply.strip() and state.latest_sentence is context:
+                result["rephrase_token"] = context.token
+            return result
         except Exception as error:
             logger.exception("Failed to process text message for user_id=%s", user_id)
             return {

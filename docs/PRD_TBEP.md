@@ -151,3 +151,17 @@ changes the persona reply or enters conversation history. Changing the setting
 preserves persona, topic, reply style, and history. `/start` and `/reset` retain
 it. `/help` explains the modes and `/stats` displays the current choice. Like
 other preferences, it is per-user, ephemeral, and best-effort per Worker isolate.
+
+## On-demand Alternative Phrasing
+
+Successful persona replies to learner text include a **Say it another way**
+inline button. Tapping it returns one concise alternative that preserves the
+learner's meaning, labeled **Another way:** and delivered in a separate plain
+teacher voice. This remains available with `/feedback off` and does not append
+history, change preferences, or repeat an automatic correction.
+
+Only the latest learner sentence is eligible. New learner text, `/reset`,
+`/start`, or loss of ephemeral Worker state invalidates older buttons. Missing
+or expired context prompts the learner to send a new message. Other learners
+cannot use a button to rephrase the original learner's text. Openings and error
+replies do not have a button.

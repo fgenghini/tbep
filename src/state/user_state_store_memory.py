@@ -27,6 +27,7 @@ class UserStateStoreMemory(UserStateStore):
     def reset_history(self, user_id: int) -> None:
         state = self.get(user_id)
         state.history = []
+        state.latest_sentence = None
 
     def append_turn(self, user_id: int, role: str, content: str) -> None:
         state = self.get(user_id)

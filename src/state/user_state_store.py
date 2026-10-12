@@ -15,12 +15,20 @@ class HistoryEntry(TypedDict):
 
 
 @dataclass
+class SentenceContext:
+    token: str
+    content: str
+    chat_id: int | str | None = None
+
+
+@dataclass
 class UserState:
     persona: str = ""
     topic: str = ""
     history: list[HistoryEntry] = field(default_factory=list)
     style: ReplyStyle = "brief"
     feedback: FeedbackMode = "all"
+    latest_sentence: SentenceContext | None = None
 
 
 class UserStateStore(ABC):

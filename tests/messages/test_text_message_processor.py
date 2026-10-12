@@ -59,7 +59,8 @@ def test_reply_prompt_includes_brief_style_without_affecting_corrections(
         },
         {"role": "user", "content": "I like it."},
     ]
-    assert result == {"persona_reply": "Sounds fun!", "correction": None}
+    assert result["persona_reply"] == "Sounds fun!"
+    assert result["correction"] is None
     assert store.get(1).history == [
         {"role": "assistant", "content": "Hello!"},
         {"role": "user", "content": "I like it."},
