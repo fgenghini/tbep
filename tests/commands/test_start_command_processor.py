@@ -10,6 +10,36 @@ from commands.start_command_processor import (
 from state.user_state_store_memory import UserStateStoreMemory
 
 
+@pytest.mark.parametrize(
+    ("persona", "topic"),
+    [(DEFAULT_PERSONA, DEFAULT_TOPIC), ("a pirate", "sailing")],
+)
+def test_opening_prompt_includes_brief_style_with_persona_and_topic(
+    run_async, persona: str, topic: str
+) -> None:
+    store = UserStateStoreMemory()
+    store.set_persona(1, persona)
+    store.set_topic(1, topic)
+    llm = MagicMock()
+    llm.send = AsyncMock(return_value="Hello!")
+    factory = MagicMock()
+    factory.create.return_value = llm
+
+    run_async(StartCommandProcessor(store, factory).process(1, ""))
+
+    messages = llm.send.call_args.args[0]
+    assert len(messages) == 1
+    assert messages[0]["role"] == "system"
+    assert messages[0]["content"] == (
+        f"You are {persona}. We are talking about {topic}. "
+        "Start the conversation naturally and in character. "
+        "Keep replies conversational and brief by default: one or two short "
+        "sentences. Respond directly to the learner and ask at most one relevant "
+        "follow-up question. Avoid lists, lectures, and unnecessary repetition. "
+        "Give more detail when the learner asks for it."
+    )
+
+
 def test_process_applies_defaults_for_brand_new_user(run_async) -> None:
     store = UserStateStoreMemory()
     factory_mock = MagicMock()

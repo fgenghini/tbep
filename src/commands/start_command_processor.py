@@ -2,6 +2,7 @@ import logging
 
 from commands.command_processor import CommandProcessor
 from error_messages import format_fallback_message
+from messages.conversation_style import BRIEF_CONVERSATION_STYLE
 from messages.message_processor import LLMClientFactoryProtocol
 from state.user_state_store import UserStateStore
 
@@ -30,7 +31,8 @@ class StartCommandProcessor(CommandProcessor):
                 "role": "system",
                 "content": (
                     f"You are {state.persona}. We are talking about {state.topic}. "
-                    "Start the conversation naturally and in character."
+                    "Start the conversation naturally and in character. "
+                    f"{BRIEF_CONVERSATION_STYLE}"
                 ),
             }
         ]

@@ -462,7 +462,7 @@ Implement each task below in its own branch or worktree, with a separate PR. The
 
 **Depends on:** TASK-18.
 
-**Status:** [ ] To do
+**Status:** [x] Done
 
 **Goal:** Make short, conversational replies the default without asking users to repeat length instructions in `/profile`.
 
