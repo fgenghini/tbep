@@ -102,6 +102,30 @@ uv run python scripts/smoke_commands.py
 uv run python scripts/smoke_worker.py
 ```
 
+### Continuous integration
+
+GitHub Actions runs on every pull request and on pushes to `main`:
+
+- **Quality:** Ruff lint and formatting, strict mypy, pytest, and command smoke checks.
+- **Worker runtime:** locked Wrangler/package preparation and the local Cloudflare
+  Worker smoke check on Linux, using dummy credentials without Telegram or model calls.
+- **Secret scanning:** Gitleaks scans PR and push commit ranges for credentials;
+  a manual CI run scans the full history.
+- **Python dependencies** and **npm dependencies:** audit locked packages, including
+  development tools. These also run every Monday at 12:00 UTC and can be started manually.
+
+Workflows use read-only repository permissions, pinned action commits, timeouts,
+and cancel superseded runs. Python and Node versions come from `.python-version`
+and `.node-version`; uv is pinned to `0.12.3`. Installs use `uv sync --locked`
+and `npm ci` so stale lockfiles fail rather than being rewritten.
+
+Configure a GitHub ruleset or branch protection for `main` to require all five
+checks above before merging. Workflow files alone do not enforce merge protection.
+Keep Cloudflare's production build branch set to `main`; GitHub Actions validates
+changes while Cloudflare Workers Builds handles deployment. Gitleaks requires no
+additional license for this personal repository; moving it to an organization
+requires configuring the Gitleaks Action license.
+
 ### Smoke checks
 
 `smoke_commands.py` sends sample Telegram updates through the Worker's `fetch`
